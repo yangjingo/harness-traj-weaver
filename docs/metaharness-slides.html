@@ -291,18 +291,21 @@ td { padding: 10px 14px; border-bottom: 1px solid var(--hairline-soft); }
 }
 
 .keypoint {
-  margin-top: auto;
-  padding-top: var(--sp-lg);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 500;
   color: var(--primary);
   text-align: center;
   width: 100%;
   max-width: 700px;
   letter-spacing: 0.2px;
+  padding: var(--sp-sm) var(--sp-md);
+  border-left: 3px solid var(--primary);
+  background: rgba(204,120,92,.08);
+  border-radius: 0 var(--rounded-md) var(--rounded-md) 0;
+  margin-bottom: var(--sp-lg);
 }
-.slide-dark .keypoint { color: var(--primary); }
-.slide-center .keypoint { margin-top: var(--sp-xl); }
+.slide-dark .keypoint { color: var(--primary); background: rgba(204,120,92,.12); }
+.slide-center .keypoint { margin-left: auto; margin-right: auto; }
 
 /* Dark nav overrides */
 .slide-dark .nav-btn { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.15); color: var(--on-dark); }
@@ -742,6 +745,15 @@ document.addEventListener('touchstart', function(e) { touchStartX = e.changedTou
 document.addEventListener('touchend', function(e) {
   var dx = e.changedTouches[0].screenX - touchStartX;
   if (Math.abs(dx) > 50) { dx > 0 ? prev() : next(); }
+});
+
+// Reposition keypoints: move each slide's .keypoint right after its h2 (or h1)
+slides.forEach(function(slide) {
+  var kp = slide.querySelector('.keypoint');
+  var heading = slide.querySelector('h2') || slide.querySelector('h1');
+  if (kp && heading) {
+    heading.insertAdjacentElement('afterend', kp);
+  }
 });
 
 show(0);
