@@ -1,0 +1,91 @@
+{
+  "version": "v0.1.0",
+  "timestamp": "2026-05-25T10:41:20.125Z",
+  "answers": {
+    "1": {
+      "question": "1 traj-display 哪个细节最需要优先打磨？",
+      "selected": [
+        {
+          "value": "A",
+          "label": "A. TOC 操作标签不够直观"
+        }
+      ]
+    },
+    "2": {
+      "question": "2 TOC（操作标签 + 内容预览 + 可伸缩）对你的阅读效率有多大提升？",
+      "selected": [
+        {
+          "value": "1",
+          "label": "1 — 没有提升"
+        }
+      ]
+    },
+    "3": {
+      "question": "3 相比直接读原始 JSONL，traj.html 能否帮助你更快定位问题根因？",
+      "selected": [
+        {
+          "value": "A",
+          "label": "A. 快很多 — 可视化层很关键"
+        }
+      ]
+    },
+    "4": {
+      "question": "4 当前信息密度是否合适？（thinking 前 3000 字 + 余量折叠、tool 输出折叠、badge 标签）",
+      "selected": [
+        {
+          "value": "A",
+          "label": "A. 恰到好处"
+        }
+      ]
+    },
+    "5": {
+      "question": "5 仅靠 .cache/ + evals/ 文件系统（无数据库、无索引），是否足够支撑 Observe → Diagnose 流程？",
+      "selected": [
+        {
+          "value": "A",
+          "label": "A. 足够，简洁高效"
+        }
+      ]
+    },
+    "6": {
+      "question": "6 本轮 search-set 评估给了你几个可以直接动手的改进点？",
+      "selected": [
+        {
+          "value": "A",
+          "label": "A. 3 个以上 — 方向明确"
+        }
+      ]
+    },
+    "7": {
+      "question": "7 相比上一轮，Meta-Harness 本身（不含底层模型升级）是否在变好？",
+      "selected": [
+        {
+          "value": "A",
+          "label": "A. 明显进步"
+        }
+      ]
+    },
+    "8": {
+      "question": "8 Observe → Diagnose → Propose → Evaluate → Iterate，哪个环节最阻碍你的效率？",
+      "selected": [
+        {
+          "value": "A",
+          "label": "A. Observe — 找不到足够 trace"
+        }
+      ]
+    },
+    "9": {
+      "question": "9 下一轮迭代必须完成什么？（最多选 2 项）",
+      "selected": [
+        {
+          "value": "A",
+          "label": "A. traj-display 增强（搜索、导出、暗色模式、多 session 对比）"
+        }
+      ]
+    },
+    "10": {
+      "question": "10 如果只能改一件事，你会改什么？",
+      "note": "Final test - server POST"
+    }
+  }
+}
