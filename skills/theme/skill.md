@@ -1,7 +1,7 @@
 ---
 name: theme
 version: "0.1.0"
-description: Theme CSS tokens and visual language for Meta-Harness. Provides the canonical color palette, typography scale, spacing rhythm, and component patterns used across all sub-skills (traj-display, metric). Inspired by the Anthropic brand aesthetic — warm cream canvas, coral accents, dark sidebar, serif headings.
+description: Theme CSS tokens and visual language for Meta-Harness. Provides the canonical color palette, typography scale, spacing rhythm, and component patterns used across all sub-skills (traj, metric). Inspired by the Anthropic brand aesthetic — warm cream canvas, coral accents, dark sidebar, serif headings.
 ---
 
 ## Overview

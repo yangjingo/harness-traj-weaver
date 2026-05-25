@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **skills/traj-display** — Claude Code session trajectory HTML generator
+- **skills/traj** — Claude Code session trajectory HTML generator
   - TOC with action-type labels (Thinking/Bash/Skill/Read/Write/Text) instead of generic "Assistant"
   - Turn-based folding timeline with action badges on turn headers
   - Color-coded content blocks (teal=thinking, amber=tool calls, coral=skill-exec)

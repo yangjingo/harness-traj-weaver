@@ -1,5 +1,5 @@
 ---
-name: traj-display
+name: traj
 version: "0.1.0"
 description: Claude Code session trajectory visualization. Reads JSONL session files and generates interactive HTML timeline views with TOC navigation, thinking blocks, tool call tracking, and skill usage highlighting. Designed for Meta-Harness trace-level reasoning.
 ---
@@ -27,7 +27,7 @@ This skill embodies Meta-Harness Principle #2: **Trace-level reasoning**. Instea
 ## Usage
 
 ```bash
-python sub-skills/traj-display/scripts/generate_traj.py \
+python skills/traj/scripts/generate_traj.py \
   --input ~/.claude/projects/<project>/<session>.jsonl \
   --output traj.html
 ```

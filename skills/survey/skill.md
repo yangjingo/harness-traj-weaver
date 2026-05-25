@@ -58,7 +58,7 @@ Assesses the Meta-Harness paradigm itself across 6 sections:
 # Generate a QA survey for a specific skill version
 python skills/survey/scripts/generate_survey.py \
   --type qa \
-  --skill traj-display \
+  --skill traj \
   --version v0.1.0
 
 # Generate a Meta-Harness human-loop survey

@@ -2,7 +2,7 @@
 """generate_survey.py — Generate feedback surveys from templates.
 
 Usage:
-  python generate_survey.py --type qa --skill traj-display --version v0.1.0
+  python generate_survey.py --type qa --skill traj --version v0.1.0
   python generate_survey.py --type human-loop --version v0.1.0
 """
 

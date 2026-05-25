@@ -53,7 +53,7 @@ Specialized skills for visualizing Meta-Harness data:
 
 | Skill | Path | Purpose |
 |---|---|---|
-| **traj-display** | `skills/traj-display/` | Claude Code session trajectory HTML generator — timeline view with TOC, thinking blocks, tool calls |
+| **traj** | `skills/traj/` | Claude Code session trajectory HTML generator — timeline view with TOC, thinking blocks, tool calls |
 | **survey** | `skills/survey/` | Feedback survey generator — two types: qa (skill-level UI/UX) and human-loop (Meta-Harness paradigm assessment), archived as eval inputs |
 | **metric** | `skills/metric/` | Evaluation metrics dashboard HTML generator — pipeline timing, parse quality, benchmarks |
 | **theme** | `skills/theme/` | Theme CSS tokens and visual language for all HTML output |
@@ -62,7 +62,7 @@ Specialized skills for visualizing Meta-Harness data:
 
 ```bash
 # Generate a trajectory view from a Claude Code session
-python skills/traj-display/scripts/generate_traj.py \
+python skills/traj/scripts/generate_traj.py \
   --input ~/.claude/projects/<project>/<session>.jsonl \
   --output traj.html
 ```

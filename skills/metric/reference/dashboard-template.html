@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code Review — $version</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --canvas: #faf9f5;
+  --surface-soft: #f5f0e8;
+  --surface-card: #efe9de;
+  --surface-dark: #181715;
+  --surface-dark-elevated: #252320;
+  --hairline: #e6dfd8;
+  --hairline-soft: #ebe6df;
+  --ink: #141413;
+  --body-strong: #252523;
+  --body: #3d3d3a;
+  --muted: #6c6a64;
+  --muted-soft: #8e8b82;
+  --primary: #cc785c;
+  --primary-active: #a9583e;
+  --accent-teal: #5db8a6;
+  --accent-amber: #e8a55a;
+  --on-primary: #fff;
+  --on-dark: #faf9f5;
+  --on-dark-soft: #a09d96;
+  --success: #5db872;
+  --warning: #d4a017;
+  --error: #c64545;
+  --rounded-md: 8px;
+  --rounded-lg: 12px;
+  --rounded-pill: 9999px;
+  --sp-xs: 8px;
+  --sp-sm: 12px;
+  --sp-md: 16px;
+  --sp-lg: 24px;
+  --sp-xl: 32px;
+  --sp-xxl: 48px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--body);
+  background: var(--canvas);
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 260px;
+  min-height: 100vh;
+  background: var(--surface-dark);
+  color: var(--on-dark);
+  padding: var(--sp-xl) 0;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  overflow-y: auto;
+  z-index: 10;
+}
+.sidebar-logo {
+  padding: 0 var(--sp-xl) var(--sp-xxl);
+  border-bottom: 1px solid #2a2927;
+}
+.sidebar-logo .ver {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px;
+  color: var(--on-dark);
+}
+.sidebar-logo .sub {
+  font-size: 11px;
+  color: var(--on-dark-soft);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+.sidebar-nav { padding: var(--sp-lg) 0; }
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px var(--sp-xl);
+  color: var(--on-dark-soft);
+  font-size: 14px;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: all 0.15s;
+  text-decoration: none;
+}
+.nav-item:hover { color: var(--on-dark); background: var(--surface-dark-elevated); }
+.nav-item.active { color: var(--on-dark); background: var(--surface-dark-elevated); border-left-color: var(--primary); }
+.nav-icon { width: 18px; text-align: center; font-size: 14px; }
+.nav-count {
+  margin-left: auto;
+  font-size: 11px;
+  padding: 1px 7px;
+  border-radius: var(--rounded-pill);
+  background: rgba(255,255,255,.1);
+}
+.nav-divider { height: 1px; background: #2a2927; margin: var(--sp-sm) var(--sp-xl); }
+
+/* Main */
+.main { margin-left: 260px; flex: 1; }
+.section { display: none; padding: var(--sp-xxl) var(--sp-xl); }
+.section.active { display: block; }
+
+h1, h2, h3, h4 {
+  font-family: 'Cormorant Garamond', serif;
+  color: var(--ink);
+  font-weight: 400;
+}
+h1 { font-size: 42px; letter-spacing: -1px; }
+h2 { font-size: 28px; margin-bottom: var(--sp-md); }
+h3 { font-size: 22px; margin-bottom: var(--sp-sm); }
+.eyebrow {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: var(--sp-sm);
+}
+
+/* Stats */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--sp-md);
+  margin-bottom: var(--sp-xl);
+}
+.stat-item {
+  text-align: center;
+  padding: var(--sp-lg);
+  background: var(--surface-card);
+  border-radius: var(--rounded-lg);
+  border: 1px solid var(--hairline);
+}
+.stat-item.pass { border-top: 3px solid var(--success); }
+.stat-item.warn { border-top: 3px solid var(--warning); }
+.stat-item.fail { border-top: 3px solid var(--error); }
+.stat-val {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 42px;
+  letter-spacing: -1px;
+  color: var(--ink);
+  line-height: 1.1;
+}
+.stat-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  margin-top: 6px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+/* Principle score bars */
+.principle-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sp-lg);
+  margin-bottom: var(--sp-xl);
+}
+.principle-card {
+  background: var(--surface-card);
+  border-radius: var(--rounded-lg);
+  padding: var(--sp-xl);
+  border: 1px solid var(--hairline);
+}
+.principle-card h4 {
+  font-size: 18px;
+  margin-bottom: var(--sp-xs);
+}
+.principle-card .desc {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: var(--sp-md);
+}
+.score-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+}
+.score-bar .bar {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--hairline);
+  overflow: hidden;
+}
+.score-bar .bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s;
+}
+.score-bar .bar-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--ink);
+  min-width: 32px;
+  text-align: right;
+}
+.fill-pass { background: var(--success); }
+.fill-warn { background: var(--accent-amber); }
+.fill-fail { background: var(--error); }
+
+/* Issues list */
+.issue-list { margin-bottom: var(--sp-xl); }
+.issue {
+  background: var(--surface-card);
+  border-radius: var(--rounded-lg);
+  padding: var(--sp-lg);
+  margin-bottom: var(--sp-sm);
+  border-left: 4px solid var(--hairline);
+  border: 1px solid var(--hairline);
+  border-left: 4px solid var(--hairline);
+}
+.issue.sev-high { border-left-color: var(--error); }
+.issue.sev-med { border-left-color: var(--accent-amber); }
+.issue.sev-low { border-left-color: var(--accent-teal); }
+.issue-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--sp-xs);
+}
+.issue-file {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--ink);
+}
+.issue-principle {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--rounded-pill);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.tag-simplicity { background: #fff8e1; color: #8d6e00; }
+.tag-surgical { background: #ffebee; color: #c64545; }
+.tag-think { background: #e8f5e9; color: #2e7d32; }
+.tag-goal { background: #e0f2f1; color: #00796b; }
+.issue-lines {
+  font-size: 12px;
+  color: var(--muted);
+  font-family: 'JetBrains Mono', monospace;
+  margin-bottom: var(--sp-xs);
+}
+.issue-msg { font-size: 14px; color: var(--body); }
+.issue-fix {
+  margin-top: var(--sp-sm);
+  padding: var(--sp-sm);
+  background: var(--surface-soft);
+  border-radius: var(--rounded-md);
+  font-size: 13px;
+  color: var(--muted);
+}
+.issue-fix strong { color: var(--ink); }
+
+/* File review cards */
+.file-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sp-md);
+}
+.file-card {
+  background: var(--surface-card);
+  border-radius: var(--rounded-lg);
+  padding: var(--sp-lg);
+  border: 1px solid var(--hairline);
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+.file-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.08); }
+.file-card .name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  color: var(--ink);
+  margin-bottom: var(--sp-sm);
+}
+.file-card .scores {
+  display: flex;
+  gap: var(--sp-sm);
+}
+.file-score {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+}
+.fs-pass { background: var(--success); }
+.fs-warn { background: var(--accent-amber); }
+.fs-fail { background: var(--error); }
+
+/* Summary card */
+.summary-card {
+  background: var(--surface-dark);
+  border-radius: var(--rounded-lg);
+  padding: var(--sp-xl);
+  color: var(--on-dark);
+  margin-bottom: var(--sp-xl);
+}
+.summary-card h3 { color: var(--on-dark); }
+.summary-card p { color: var(--on-dark-soft); font-size: 14px; }
+.summary-card .verdict {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 36px;
+  color: var(--on-dark);
+  margin: var(--sp-md) 0;
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: var(--sp-xl);
+  font-size: 12px;
+  color: var(--muted-soft);
+  border-top: 1px solid var(--hairline);
+  margin-top: var(--sp-xl);
+}
+
+@media (max-width: 1024px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .principle-grid, .file-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; }
+}
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="ver">Meta-Harness</div>
+    <div class="sub">Code Review Dashboard</div>
+  </div>
+  <div class="sidebar-nav">
+    <a class="nav-item active" id="nav-overview" onclick="show('overview')">
+      <span class="nav-icon">S</span> Overview
+      <span class="nav-count">$total_issues</span>
+    </a>
+    <a class="nav-item" id="nav-files" onclick="show('files')">
+      <span class="nav-icon">F</span> Files
+      <span class="nav-count">$file_count</span>
+    </a>
+    <div class="nav-divider"></div>
+    <a class="nav-item" id="nav-issues" onclick="show('issues')">
+      <span class="nav-icon">!</span> Issues
+    </a>
+  </div>
+</nav>
+
+<!-- Main Content -->
+<div class="main">
+
+  <!-- Overview -->
+  <section class="section active" id="sec-overview">
+    <div class="eyebrow">Review Report</div>
+    <h1>Code Review — $version</h1>
+
+    <div class="summary-card">
+      <h3>Verdict</h3>
+      <div class="verdict">$verdict</div>
+      <p>$summary</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-item $overall_class">
+        <div class="stat-val">$overall_score/5</div>
+        <div class="stat-label">Overall Score</div>
+      </div>
+      <div class="stat-item pass">
+        <div class="stat-val">$files_clean</div>
+        <div class="stat-label">Clean Files</div>
+      </div>
+      <div class="stat-item warn">
+        <div class="stat-val">$files_warn</div>
+        <div class="stat-label">Needs Work</div>
+      </div>
+      <div class="stat-item fail">
+        <div class="stat-val">$total_issues</div>
+        <div class="stat-label">Issues Found</div>
+      </div>
+    </div>
+
+    <!-- Principle Scores -->
+    <h2>Principle Scores</h2>
+    <div class="principle-grid">
+      $principle_cards
+    </div>
+  </section>
+
+  <!-- Files -->
+  <section class="section" id="sec-files">
+    <h2>Per-File Scores</h2>
+    <div class="file-grid">
+      $file_cards
+    </div>
+  </section>
+
+  <!-- Issues -->
+  <section class="section" id="sec-issues">
+    <h2>All Issues</h2>
+    <div class="issue-list">
+      $issue_items
+    </div>
+  </section>
+
+  <div class="footer">
+    Generated $today &middot; Meta-Harness metric v0.1.0 &middot; Karpathy Principles
+  </div>
+</div>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  var ni = document.getElementById('nav-' + id);
+  if (ni) ni.classList.add('active');
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
