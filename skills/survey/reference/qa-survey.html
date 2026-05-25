@@ -162,6 +162,82 @@ code {
   transition: background 0.15s;
 }
 .submit-row button:hover { background: #a9583e; }
+.ctx-block {
+  background: var(--surface-dark);
+  border-radius: var(--rounded-lg);
+  padding: var(--sp-lg);
+  margin-bottom: var(--sp-lg);
+  color: var(--on-dark);
+}
+.ctx-block h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--on-dark);
+  margin-bottom: var(--sp-sm);
+  padding-bottom: var(--sp-xs);
+  border-bottom: 1px solid #2a2927;
+}
+.ctx-block .ctx-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--on-dark-soft);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: var(--sp-xs);
+}
+.git-log {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #a09d96;
+  white-space: pre-wrap;
+  margin: 0;
+}
+.git-detail {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #a09d96;
+  white-space: pre-wrap;
+  max-height: 200px;
+  overflow-y: auto;
+  margin: 0;
+  padding: var(--sp-xs);
+  background: rgba(255,255,255,.04);
+  border-radius: var(--rounded-md);
+}
+.cl-items {
+  list-style: none;
+  padding: 0;
+  font-size: 13px;
+  color: var(--on-dark-soft);
+}
+.cl-items li { padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,.05); }
+.cl-version {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--primary);
+  padding: var(--sp-xs) 0 !important;
+  border-bottom: 1px solid rgba(255,255,255,.1) !important;
+}
+.roadmap-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #a09d96;
+  white-space: pre-wrap;
+  max-height: 200px;
+  overflow-y: auto;
+  margin: 0;
+}
+.ctx-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-md);
+  margin-bottom: var(--sp-lg);
+}
+.ctx-grid .ctx-block { margin-bottom: 0; }
 </style>
 </head>
 <body>
@@ -172,6 +248,32 @@ code {
   <span>Feedback: yangjingla</span>
 </div>
 <p style="margin-bottom: var(--sp-lg); color: var(--muted);">针对本次 <code>$SKILL_NAME</code> 技能产出的结果，请逐项回答以下问题。每道选择题后附有补充说明区。</p>
+
+<!-- Context: Git & Changelog -->
+<div class="ctx-grid">
+  <div class="ctx-block">
+    <div class="ctx-label">Recent Commits</div>
+    <h3>Git Log</h3>
+    <pre class="git-log">$GIT_LOG</pre>
+  </div>
+  <div class="ctx-block">
+    <div class="ctx-label">Detailed History</div>
+    <h3>Commit Details</h3>
+    <pre class="git-detail">$GIT_DETAIL</pre>
+  </div>
+</div>
+<div class="ctx-grid">
+  <div class="ctx-block">
+    <div class="ctx-label">Project History</div>
+    <h3>CHANGELOG</h3>
+    $CHANGELOG_HTML
+  </div>
+  <div class="ctx-block">
+    <div class="ctx-label">Future Direction</div>
+    <h3>ROADMAP</h3>
+    $ROADMAP_HTML
+  </div>
+</div>
 
 <!-- A. Overall Visual -->
 <h2>A. 整体视觉</h2>

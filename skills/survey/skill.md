@@ -49,8 +49,21 @@ Assesses the Meta-Harness paradigm itself across 6 sections:
 
 | File | Purpose |
 |---|---|
-| `reference/qa-survey.html` | QA survey HTML form template with `$SKILL_NAME` and `$VERSION` placeholders |
-| `reference/human-loop.html` | Human-loop survey HTML form template with `$VERSION` placeholder |
+| `reference/qa-survey.html` | QA survey HTML form template |
+| `reference/human-loop.html` | Human-loop survey HTML form template |
+
+## Context Injection
+
+Each generated survey automatically embeds project context to ground the reviewer:
+
+| Context | Source | Display |
+|---|---|---|
+| **Git Log** | `git log --oneline -15` | Recent commits in monospace |
+| **Commit Details** | `git log -5 --no-merges` | Full messages with body |
+| **CHANGELOG** | `CHANGELOG.md` | Recent version entries as structured list |
+| **ROADMAP** | `ROADMAP.md` | Full file content (or placeholder if absent) |
+
+All context is rendered in dark sidebar-style blocks at the top of each survey, ensuring the reviewer sees what changed, why, and where the project is headed before answering.
 
 ## Usage
 
