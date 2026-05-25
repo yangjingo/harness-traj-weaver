@@ -290,6 +290,20 @@ td { padding: 10px 14px; border-bottom: 1px solid var(--hairline-soft); }
   text-align: center;
 }
 
+.keypoint {
+  margin-top: auto;
+  padding-top: var(--sp-lg);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--primary);
+  text-align: center;
+  width: 100%;
+  max-width: 700px;
+  letter-spacing: 0.2px;
+}
+.slide-dark .keypoint { color: var(--primary); }
+.slide-center .keypoint { margin-top: var(--sp-xl); }
+
 /* Dark nav overrides */
 .slide-dark .nav-btn { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.15); color: var(--on-dark); }
 .slide-dark .page-num { color: var(--on-dark-soft); }
@@ -325,6 +339,7 @@ td { padding: 10px 14px; border-bottom: 1px solid var(--hairline-soft); }
     <h1>Meta-Harness</h1>
     <p class="subtitle">The Self-Improving Loop for AI-Coded Software</p>
     <p style="margin-top:var(--sp-xxl);font-size:14px;color:var(--on-dark-soft)">Four principles · Four skills · One hook</p>
+    <div class="keypoint">AI-coded software needs a self-reviewing harness, not just more tests</div>
   </div>
 
   <!-- Slide 1: The Problem -->
@@ -337,6 +352,7 @@ td { padding: 10px 14px; border-bottom: 1px solid var(--hairline-soft); }
       <li><span class="step-num">03</span> Review is reactive — after code is already committed</li>
       <li><span class="step-num">04</span> No feedback loop to improve the process itself</li>
     </ul>
+    <div class="keypoint">Without traceability, AI-generated code is a black box — you can't diagnose what you can't see</div>
   </div>
 
   <!-- Slide 2: Four Principles -->
@@ -365,6 +381,7 @@ td { padding: 10px 14px; border-bottom: 1px solid var(--hairline-soft); }
         <p>Harness quality rises automatically as the underlying agent becomes more capable.</p>
       </div>
     </div>
+    <div class="keypoint">These aren't abstract virtues — each principle maps to a concrete skill that enforces it</div>
   </div>
 
   <!-- Slide 3: The Loop -->
@@ -387,6 +404,7 @@ td { padding: 10px 14px; border-bottom: 1px solid var(--hairline-soft); }
     <p style="margin-top:var(--sp-xl);color:var(--on-dark-soft);font-size:15px">
       Agent proposes → Harness tests → Results flow back → Agent learns → repeat
     </p>
+    <div class="keypoint">The filesystem is the only database — every artifact is a file you can read, diff, and learn from</div>
   </div>
 
   <!-- Slide 4: Skills Overview -->
@@ -415,6 +433,7 @@ td { padding: 10px 14px; border-bottom: 1px solid var(--hairline-soft); }
         <p>Visual design tokens — warm Anthropic aesthetic for all HTML output</p>
       </div>
     </div>
+    <div class="keypoint">Four skills, each covering one step of the loop — together they close the feedback cycle</div>
   </div>
 
   <!-- Slide 5: traj — Observe -->
@@ -433,6 +452,7 @@ td { padding: 10px 14px; border-bottom: 1px solid var(--hairline-soft); }
       <span class="tag tag-coral">Skill execs</span>
       <span class="tag tag-dark">TOC nav</span>
     </div>
+    <div class="keypoint">Don't read summaries — read the raw conversation. Thinking blocks reveal the agent's actual reasoning</div>
   </div>
 
   <!-- Slide 6: metric — Evaluate -->
@@ -453,6 +473,7 @@ td { padding: 10px 14px; border-bottom: 1px solid var(--hairline-soft); }
 <span class="cmd">python</span> <span class="path">skills/metric/scripts/generate_dashboard.py</span> \
   <span class="arg">--diff</span> HEAD <span class="arg">--goal</span> <span class="path">"Add user auth"</span>
     </div>
+    <div class="keypoint">Code review should be pre-commit, automated, and principle-based — not a post-hoc human bottleneck</div>
   </div>
 
   <!-- Slide 7: survey — Feedback -->
@@ -470,21 +491,53 @@ td { padding: 10px 14px; border-bottom: 1px solid var(--hairline-soft); }
     <p style="margin-top:var(--sp-md);font-size:14px;color:var(--muted)">
       Context injected: <code>git log</code> · <code>git log -5</code> · <code>CHANGELOG.md</code> · <code>ROADMAP.md</code>
     </p>
+    <div class="keypoint">Feedback without context is noise — every survey embeds the git history that produced the change</div>
   </div>
 
   <!-- Slide 8: The Complete Cycle -->
-  <div class="slide slide-left" data-index="9">
-    <div class="eyebrow">Integration</div>
+  <div class="slide slide-dark slide-center" data-index="9">
+    <div class="eyebrow" style="color:var(--accent-amber)">Integration</div>
     <h2>The Complete Cycle</h2>
-    <ol class="step-list">
-      <li><span class="step-num">1</span> Agent proposes changes via Claude Code</li>
-      <li><span class="step-num">2</span> Session JSONL captured — <strong>traj</strong> visualizes execution traces</li>
-      <li><span class="step-num">3</span> git diff reviewed — <strong>metric</strong> scores against Karpathy principles</li>
-      <li><span class="step-num">4</span> <strong>survey</strong> collects human feedback (with git log + CHANGELOG)</li>
-      <li><span class="step-num">5</span> Results stored in <code>evals/v{N}/outputs/</code></li>
-      <li><span class="step-num">6</span> Agent reads feedback, CHANGELOG, and traces from filesystem</li>
-      <li><span class="step-num">7</span> Iteration N+1 begins, informed by the full history</li>
-    </ol>
+    <div class="ascii-diagram" style="margin-top:var(--sp-md)">
+                         +-------------------+
+                         |   Filesystem      |<-----------------------------+
+                         |   (.cache/evals)  |                              |
+                         +--------+----------+                              |
+                                  |                                  (3) Store
+                                  v                                  all Logs
+    +-----------------------------+-----------------------------------+
+    |                             |                                   |
+    |  +------------------+  +------------------+  +----------------+ |
+    |  | Proposed Code    |  | Reasoning Traces |  | Eval Scores    | |
+    |  | (diffs, commits) |  | (JSONL sessions) |  | (review dash)  | |
+    |  +--------+---------+  +--------+---------+  +-------+--------+ |
+    |           |                     |                    |          |
+    +-----------+---------------------+--------------------+----------+
+                |                     |                    |
+          (1) Propose           traj visualizes     metric + survey
+                |                     |                    |
+                v                     v                    |
+    +-----------+----------+  +-------+--------+          |
+    | Harness + LLM        |  | traj           |          |
+    | (Claude Code)        |  | Trace View     |<---------+
+    +-----------+----------+  +----------------+
+                |
+                v
+    +-----------+----------+
+    | metric               |
+    | Code Review Dashboard|
+    | (Karpathy Principles)|
+    +-----------+----------+
+                |
+                v
+    +-----------+----------+
+    | survey               |----------------------------------------------+
+    | Human Feedback Loop  |                                              |
+    +----------------------+                                              |
+                                                                         |
+    Iteration N+1 ← richer traces ← better diagnosis ← better proposals ←+
+    </div>
+    <div class="keypoint">Every commit links to a session, every session links to a trace, every trace feeds the next iteration</div>
   </div>
 
   <!-- Slide 10: Filesystem Layout -->
@@ -512,6 +565,7 @@ td { padding: 10px 14px; border-bottom: 1px solid var(--hairline-soft); }
     <p style="margin-top:var(--sp-md);color:var(--on-dark-soft);font-size:15px">
       No database. No vector store. No persistent memory. Just the filesystem.
     </p>
+    <div class="keypoint">The filesystem is the ultimate audit trail — every artifact is versioned, readable, and diffable</div>
   </div>
 
   <!-- Slide 11: The Hook -->
@@ -535,6 +589,7 @@ td { padding: 10px 14px; border-bottom: 1px solid var(--hairline-soft); }
   │
   └─ <span class="hl">5.</span> Block commit if score &lt; threshold
     </div>
+    <div class="keypoint">One hook. Installed in seconds. Every commit is now traced, scored, and archived — automatically</div>
   </div>
 
   <!-- Slide 12: Developer Experience -->
@@ -556,6 +611,7 @@ td { padding: 10px 14px; border-bottom: 1px solid var(--hairline-soft); }
   <span class="path">metric:</span>  .cache/feedback/review-20260525-184100.html
   <span class="path">session:</span> f615685c-0a69-4354-90db-b2fbb68c038b.jsonl
     </div>
+    <div class="keypoint">3.8/5 with 4 issues — the hook surfaces problems before they reach production, not after</div>
   </div>
 
   <!-- Slide 13: Why Session Matters -->
@@ -584,6 +640,7 @@ td { padding: 10px 14px; border-bottom: 1px solid var(--hairline-soft); }
         <p>The harness reviews its own code via its own hooks. Meta-Harness eats its own dogfood.</p>
       </div>
     </div>
+    <div class="keypoint">The session ID is the missing link — it connects a commit to the exact conversation that produced it</div>
   </div>
 
   <!-- Slide 14: Principles in Action -->
@@ -599,6 +656,7 @@ td { padding: 10px 14px; border-bottom: 1px solid var(--hairline-soft); }
       <tr><td>Self-Improving</td><td>The loop itself</td><td>Each iteration leaves richer traces → better proposals</td></tr>
     </table>
     </div>
+    <div class="keypoint">Every principle has teeth — each one is enforced by a concrete skill, not just a slide in a deck</div>
   </div>
 
   <!-- Slide 15: Get Started -->
@@ -620,6 +678,7 @@ td { padding: 10px 14px; border-bottom: 1px solid var(--hairline-soft); }
     <p style="margin-top:var(--sp-lg);font-size:15px;color:var(--muted)">
       That's it. Every commit is now traced, scored, and archived.
     </p>
+    <div class="keypoint">Two commands to install. Zero changes to your workflow. Instant quality gate on every commit</div>
   </div>
 
   <!-- Slide 16: Closing -->
@@ -634,6 +693,7 @@ td { padding: 10px 14px; border-bottom: 1px solid var(--hairline-soft); }
     <p style="margin-top:var(--sp-xxl);font-size:13px;color:var(--on-dark-soft)">
       github.com/yangjingla/harness-traj-weaver
     </p>
+    <div class="keypoint">The harness that reviews the reviewer — Meta-Harness eats its own dogfood</div>
   </div>
 
 </div>
