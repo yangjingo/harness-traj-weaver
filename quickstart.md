@@ -11,7 +11,7 @@ git clone https://github.com/yangjing/harness-traj-weaver.git ~/.claude/skills/h
 ## Verify
 
 ```bash
-cat ~/.claude/skills/harness-traj-weaver/SKILL.md
+cat ~/.claude/skills/harness-traj-weaver/skill.md
 ```
 
 ## What This Skill Does
