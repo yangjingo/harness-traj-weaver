@@ -227,16 +227,7 @@ td { padding: 10px 14px; border-bottom: 1px solid var(--hairline-soft); }
 .flow-node.active { background: var(--primary); color: #fff; border-color: var(--primary); }
 .flow-arrow { color: var(--muted-soft); font-size: 24px; }
 
-/* Hook flow */
-.hook-flow {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 14px;
-  line-height: 1.8;
-  color: var(--on-dark-soft);
-  margin-top: var(--sp-md);
-  text-align: left;
-}
-.hook-flow .hl { color: var(--primary); }
+.code-block .hl { color: var(--primary); font-weight: 500; }
 
 /* Steps list */
 .step-list { list-style: none; text-align: left; max-width: 700px; }
@@ -576,7 +567,7 @@ td { padding: 10px 14px; border-bottom: 1px solid var(--hairline-soft); }
     <div class="eyebrow">Automation</div>
     <h2>Pre-Commit Hook: The Gate</h2>
     <p style="color:var(--muted);max-width:700px">Fires before every <code>git commit</code> — finds the current Claude Code session, runs traj + metric, and blocks if quality drops.</p>
-    <div class="hook-flow" style="margin-top:var(--sp-lg)">
+    <div class="code-block" style="margin-top:var(--sp-md);text-align:left;line-height:1.7">
 <span class="hl">git commit</span>
   │
   ├─ <span class="hl">1.</span> Find current Claude Code session JSONL
