@@ -41,8 +41,8 @@ evals/
     inputs/
       session.jsonl       — archived session for trajectory demo
     outputs/
-      traj.html           — generated trajectory HTML
-      meta-harness-survey.html — unified Meta-Harness feedback survey
+      meta-harness-66c583c5-traj.html — generated trajectory HTML
+      meta-harness-66c583c5-survey.html — unified Meta-Harness feedback survey
 ```
 
 The human-loop survey covers both skill-level UI/UX and Meta-Harness paradigm assessment. It is archived under `evals/v{version}/outputs/` as a key artifact driving the next iteration.
@@ -64,7 +64,7 @@ Specialized skills for visualizing Meta-Harness data:
 # Generate a trajectory view from a Claude Code session
 python skills/traj/scripts/generate_traj.py \
   --input ~/.claude/projects/<project>/<session>.jsonl \
-  --output traj.html
+  --output meta-harness-66c583c5-traj.html
 ```
 
 All generated HTML files are self-contained (CSS inline, no build step). Open directly in a browser.

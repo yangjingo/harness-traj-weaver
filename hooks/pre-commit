@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+# === Meta-Harness pre-commit hook ===
+# Runs before every commit:
+#   1. Finds the current Claude Code session JSONL
+#   2. Generates traj.html from the session trace
+#   3. Runs metric review (Karpathy 4 principles) on staged changes
+#   4. Archives both to evals/ or .cache/feedback/
+#   5. Blocks commit if score below threshold
+#
+# Install:  cp hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+# Configure via:  git config metaharness.threshold 3.0
+#                 git config metaharness.strict   true
+
+set -euo pipefail
+
+# --- Config ---
+THRESHOLD=$(git config --get metaharness.threshold 2>/dev/null || echo "2.5")
+STRICT=$(git config --get metaharness.strict 2>/dev/null || echo "false")
+SKIP_METAHARNESS=$(git config --get metaharness.skip 2>/dev/null || echo "false")
+SNAPSHOT_DIR="${SNAPSHOT_DIR:-.cache/feedback}"
+VERSION="${VERSION:-snapshot}"
+
+if [ "$SKIP_METAHARNESS" = "true" ]; then
+    exit 0
+fi
+
+# --- Locate the skills directory ---
+REPO_ROOT=$(git rev-parse --show-toplevel)
+SKILLS_DIR="$REPO_ROOT/skills"
+METRIC_SCRIPT="$SKILLS_DIR/metric/scripts/generate_dashboard.py"
+TRAJ_SCRIPT="$SKILLS_DIR/traj/scripts/generate_traj.py"
+
+# --- Find the Claude Code session directory for this project ---
+# Claude Code encodes paths: / → -, : → -. Scan for a matching directory.
+SESSION_DIR=""
+SESSION_FILE=""
+BASE="$HOME/.claude/projects"
+if [ -d "$BASE" ]; then
+    # Try to match by the tail of the project path (most distinctive)
+    PROJECT_TAIL=$(basename "$REPO_ROOT")
+    for dir in "$BASE"/*/; do
+        dirname=$(basename "$dir")
+        if echo "$dirname" | grep -qi "$PROJECT_TAIL"; then
+            SESSION_DIR="$dir"
+            break
+        fi
+    done
+fi
+
+# --- Step 1: Find the most recent session ---
+if [ -n "$SESSION_DIR" ] && [ -d "$SESSION_DIR" ]; then
+    SESSION_FILE=$(ls -t "$SESSION_DIR"/*.jsonl 2>/dev/null | head -1)
+fi
+
+# --- Step 2: Generate traj.html from session ---
+TRAJ_OUT=""
+if [ -n "$SESSION_FILE" ] && [ -f "$TRAJ_SCRIPT" ]; then
+    mkdir -p "$SNAPSHOT_DIR"
+    SESSION_ID=$(basename "$SESSION_FILE" .jsonl)
+    TRAJ_OUT="$SNAPSHOT_DIR/traj-$SESSION_ID.html"
+    python "$TRAJ_SCRIPT" --input "$SESSION_FILE" --output "$TRAJ_OUT" 2>&1 || true
+fi
+
+# --- Step 3: Run metric review on staged changes ---
+METRIC_OUT=""
+METRIC_SCORE=""
+if [ -f "$METRIC_SCRIPT" ]; then
+    mkdir -p "$SNAPSHOT_DIR"
+    COMMIT_MSG_FILE=$(git rev-parse --git-dir)/COMMIT_EDITMSG
+    GOAL=""
+    if [ -f "$COMMIT_MSG_FILE" ]; then
+        GOAL=$(head -1 "$COMMIT_MSG_FILE" 2>/dev/null || echo "")
+    fi
+
+    METRIC_OUT="$SNAPSHOT_DIR/review-$(date +%Y%m%d-%H%M%S).html"
+
+    # Run metric on all tracked changes (staged + unstaged vs HEAD)
+    METRIC_RESULT=$(python "$METRIC_SCRIPT" --diff HEAD --goal "$GOAL" --output "$METRIC_OUT" 2>&1)
+    METRIC_SCORE=$(echo "$METRIC_RESULT" | sed -n 's/.*Overall score:\s*\([0-9.]*\).*/\1/p' | head -1)
+
+    echo ""
+    echo "=== Meta-Harness Pre-Commit Review ==="
+    echo "$METRIC_RESULT"
+    echo ""
+
+    if [ -n "$TRAJ_OUT" ]; then
+        echo "  traj:    $TRAJ_OUT"
+    fi
+    echo "  metric:  $METRIC_OUT"
+    if [ -n "$SESSION_FILE" ]; then
+        echo "  session: $(basename "$SESSION_FILE")"
+    fi
+    echo ""
+
+    # --- Step 4: Block if below threshold ---
+    if [ -n "$METRIC_SCORE" ] && [ "$STRICT" = "true" ]; then
+        if awk "BEGIN {exit !($METRIC_SCORE < $THRESHOLD)}"; then
+            echo "BLOCKED: Review score $METRIC_SCORE is below threshold $THRESHOLD"
+            echo "  Fix the issues above, or run: git config metaharness.skip true"
+            exit 1
+        fi
+    fi
+fi
+
+exit 0
