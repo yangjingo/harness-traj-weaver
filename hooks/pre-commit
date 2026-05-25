@@ -1,104 +1,103 @@
 #!/usr/bin/env bash
 # === Meta-Harness pre-commit hook ===
-# Runs before every commit:
-#   1. Finds the current Claude Code session JSONL
-#   2. Generates traj.html from the session trace
-#   3. Runs metric review (Karpathy 4 principles) on staged changes
-#   4. Archives both to evals/ or .cache/feedback/
-#   5. Blocks commit if score below threshold
+# Light mode (default):  Scores staged changes against Karpathy 4 principles, terminal only.
+# Full mode (opt-in):    Also generates traj.html + dashboard.html artifacts.
 #
 # Install:  cp hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
-# Configure via:  git config metaharness.threshold 3.0
-#                 git config metaharness.strict   true
+#
+# Config:
+#   git config metaharness.threshold 3.0    # minimum score (default: 2.5)
+#   git config metaharness.strict true       # block commits below threshold
+#   git config metaharness.full true         # generate HTML artifacts (traj + metric)
+#   git config metaharness.skip true         # skip hook entirely (one-shot)
 
 set -euo pipefail
 
 # --- Config ---
 THRESHOLD=$(git config --get metaharness.threshold 2>/dev/null || echo "2.5")
 STRICT=$(git config --get metaharness.strict 2>/dev/null || echo "false")
-SKIP_METAHARNESS=$(git config --get metaharness.skip 2>/dev/null || echo "false")
-SNAPSHOT_DIR="${SNAPSHOT_DIR:-.cache/feedback}"
-VERSION="${VERSION:-snapshot}"
+FULL=$(git config --get metaharness.full 2>/dev/null || echo "false")
+SKIP=$(git config --get metaharness.skip 2>/dev/null || echo "false")
 
-if [ "$SKIP_METAHARNESS" = "true" ]; then
+if [ "$SKIP" = "true" ]; then
     exit 0
 fi
 
-# --- Locate the skills directory ---
-REPO_ROOT=$(git rev-parse --show-toplevel)
-SKILLS_DIR="$REPO_ROOT/skills"
-METRIC_SCRIPT="$SKILLS_DIR/metric/scripts/generate_dashboard.py"
-TRAJ_SCRIPT="$SKILLS_DIR/traj/scripts/generate_traj.py"
+# --- Only run when there are staged changes ---
+if git diff --cached --quiet; then
+    exit 0
+fi
 
-# --- Find the Claude Code session directory for this project ---
-# Claude Code encodes paths: / → -, : → -. Scan for a matching directory.
-SESSION_DIR=""
-SESSION_FILE=""
+# --- Locate scripts ---
+REPO_ROOT=$(git rev-parse --show-toplevel)
+METRIC_SCRIPT="$REPO_ROOT/skills/metric/scripts/generate_dashboard.py"
+TRAJ_SCRIPT="$REPO_ROOT/skills/traj/scripts/generate_traj.py"
+
+# --- Find current session ID (lightweight: just the ID, no traj generation) ---
+SESSION_ID=""
 BASE="$HOME/.claude/projects"
 if [ -d "$BASE" ]; then
-    # Try to match by the tail of the project path (most distinctive)
     PROJECT_TAIL=$(basename "$REPO_ROOT")
     for dir in "$BASE"/*/; do
-        dirname=$(basename "$dir")
-        if echo "$dirname" | grep -qi "$PROJECT_TAIL"; then
-            SESSION_DIR="$dir"
+        if echo "$(basename "$dir")" | grep -qi "$PROJECT_TAIL"; then
+            SESSION_FILE=$(ls -t "$dir"/*.jsonl 2>/dev/null | head -1)
+            if [ -n "$SESSION_FILE" ]; then
+                SESSION_ID=$(basename "$SESSION_FILE" .jsonl)
+            fi
             break
         fi
     done
 fi
 
-# --- Step 1: Find the most recent session ---
-if [ -n "$SESSION_DIR" ] && [ -d "$SESSION_DIR" ]; then
-    SESSION_FILE=$(ls -t "$SESSION_DIR"/*.jsonl 2>/dev/null | head -1)
+# --- Get commit message for goal context ---
+COMMIT_MSG_FILE=$(git rev-parse --git-dir)/COMMIT_EDITMSG
+GOAL=""
+if [ -f "$COMMIT_MSG_FILE" ]; then
+    GOAL=$(head -1 "$COMMIT_MSG_FILE" 2>/dev/null || echo "")
 fi
 
-# --- Step 2: Generate traj.html from session ---
-TRAJ_OUT=""
-if [ -n "$SESSION_FILE" ] && [ -f "$TRAJ_SCRIPT" ]; then
-    mkdir -p "$SNAPSHOT_DIR"
-    SESSION_ID=$(basename "$SESSION_FILE" .jsonl)
-    TRAJ_OUT="$SNAPSHOT_DIR/traj-$SESSION_ID.html"
-    python "$TRAJ_SCRIPT" --input "$SESSION_FILE" --output "$TRAJ_OUT" 2>&1 || true
+# --- Run metric review (always) ---
+if [ ! -f "$METRIC_SCRIPT" ]; then
+    exit 0
 fi
 
-# --- Step 3: Run metric review on staged changes ---
-METRIC_OUT=""
-METRIC_SCORE=""
-if [ -f "$METRIC_SCRIPT" ]; then
+METRIC_RESULT=$(python "$METRIC_SCRIPT" --diff HEAD --goal "$GOAL" --output /dev/null 2>&1 || echo "metric failed")
+METRIC_SCORE=$(echo "$METRIC_RESULT" | sed -n 's/.*Overall score:\s*\([0-9.]*\).*/\1/p' | head -1)
+METRIC_FILES=$(echo "$METRIC_RESULT" | sed -n 's/.*Files reviewed:\s*\([0-9]*\).*/\1/p' | head -1)
+METRIC_ISSUES=$(echo "$METRIC_RESULT" | sed -n 's/.*Issues found:\s*\([0-9]*\).*/\1/p' | head -1)
+
+# --- Terminal output: one clean line ---
+echo ""
+echo "=== Meta-Harness ==="
+echo "  Score: ${METRIC_SCORE:-?}/5  |  Files: ${METRIC_FILES:-?}  |  Issues: ${METRIC_ISSUES:-?}  |  Session: ${SESSION_ID:-?}"
+echo ""
+
+# --- Full mode: generate HTML artifacts ---
+if [ "$FULL" = "true" ]; then
+    SNAPSHOT_DIR=".cache/feedback"
     mkdir -p "$SNAPSHOT_DIR"
-    COMMIT_MSG_FILE=$(git rev-parse --git-dir)/COMMIT_EDITMSG
-    GOAL=""
-    if [ -f "$COMMIT_MSG_FILE" ]; then
-        GOAL=$(head -1 "$COMMIT_MSG_FILE" 2>/dev/null || echo "")
-    fi
 
-    METRIC_OUT="$SNAPSHOT_DIR/review-$(date +%Y%m%d-%H%M%S).html"
-
-    # Run metric on all tracked changes (staged + unstaged vs HEAD)
-    METRIC_RESULT=$(python "$METRIC_SCRIPT" --diff HEAD --goal "$GOAL" --output "$METRIC_OUT" 2>&1)
-    METRIC_SCORE=$(echo "$METRIC_RESULT" | sed -n 's/.*Overall score:\s*\([0-9.]*\).*/\1/p' | head -1)
-
-    echo ""
-    echo "=== Meta-Harness Pre-Commit Review ==="
-    echo "$METRIC_RESULT"
-    echo ""
-
-    if [ -n "$TRAJ_OUT" ]; then
-        echo "  traj:    $TRAJ_OUT"
-    fi
-    echo "  metric:  $METRIC_OUT"
-    if [ -n "$SESSION_FILE" ]; then
-        echo "  session: $(basename "$SESSION_FILE")"
-    fi
-    echo ""
-
-    # --- Step 4: Block if below threshold ---
-    if [ -n "$METRIC_SCORE" ] && [ "$STRICT" = "true" ]; then
-        if awk "BEGIN {exit !($METRIC_SCORE < $THRESHOLD)}"; then
-            echo "BLOCKED: Review score $METRIC_SCORE is below threshold $THRESHOLD"
-            echo "  Fix the issues above, or run: git config metaharness.skip true"
-            exit 1
+    # Generate traj.html
+    if [ -n "$SESSION_ID" ] && [ -f "$TRAJ_SCRIPT" ]; then
+        SESSION_FILE=$(ls "$BASE"/*"$SESSION_ID"*.jsonl 2>/dev/null | head -1)
+        if [ -n "$SESSION_FILE" ]; then
+            python "$TRAJ_SCRIPT" --input "$SESSION_FILE" --output "$SNAPSHOT_DIR/traj-$SESSION_ID.html" >/dev/null 2>&1 || true
+            echo "  traj:    $SNAPSHOT_DIR/traj-$SESSION_ID.html"
         fi
+    fi
+
+    # Generate metric dashboard
+    python "$METRIC_SCRIPT" --diff HEAD --goal "$GOAL" --output "$SNAPSHOT_DIR/review-$(date +%Y%m%d-%H%M%S).html" >/dev/null 2>&1 || true
+    echo "  metric:  $SNAPSHOT_DIR/review-*.html"
+    echo ""
+fi
+
+# --- Block if below threshold ---
+if [ -n "$METRIC_SCORE" ] && [ "$STRICT" = "true" ]; then
+    if awk "BEGIN {exit !($METRIC_SCORE < $THRESHOLD)}"; then
+        echo "BLOCKED: Score $METRIC_SCORE < threshold $THRESHOLD"
+        echo "  Fix the issues, or: git config metaharness.skip true && git commit ..."
+        exit 1
     fi
 fi
 
