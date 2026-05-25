@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meta-Harness Human-Loop Survey — $VERSION</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --canvas: #faf9f5;
+  --surface-soft: #f5f0e8;
+  --surface-card: #efe9de;
+  --surface-dark: #181715;
+  --hairline: #e6dfd8;
+  --ink: #141413;
+  --body: #3d3d3a;
+  --muted: #6c6a64;
+  --primary: #cc785c;
+  --accent-teal: #5db8a6;
+  --accent-amber: #e8a55a;
+  --success: #5db872;
+  --error: #c64545;
+  --rounded-md: 8px;
+  --rounded-lg: 12px;
+  --sp-xs: 8px;
+  --sp-sm: 12px;
+  --sp-md: 16px;
+  --sp-lg: 24px;
+  --sp-xl: 32px;
+  --sp-xxl: 48px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--body);
+  background: var(--canvas);
+  max-width: 780px;
+  margin: 0 auto;
+  padding: var(--sp-xxl) var(--sp-lg);
+}
+h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 42px;
+  font-weight: 400;
+  color: var(--ink);
+  letter-spacing: -0.5px;
+  margin-bottom: var(--sp-xs);
+}
+.meta {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: var(--sp-xl);
+  padding-bottom: var(--sp-lg);
+  border-bottom: 1px solid var(--hairline);
+}
+.meta span { margin-right: var(--sp-lg); }
+h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px;
+  font-weight: 400;
+  color: var(--ink);
+  margin-top: var(--sp-xxl);
+  margin-bottom: var(--sp-md);
+  padding-bottom: var(--sp-xs);
+  border-bottom: 2px solid var(--primary);
+}
+.intro {
+  color: var(--muted);
+  margin-bottom: var(--sp-lg);
+}
+.question {
+  background: var(--surface-card);
+  border-radius: var(--rounded-lg);
+  padding: var(--sp-lg);
+  margin-bottom: var(--sp-lg);
+  border: 1px solid var(--hairline);
+}
+.question h3 {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  margin-bottom: var(--sp-md);
+}
+.options { display: flex; flex-direction: column; gap: var(--sp-xs); }
+.option {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-sm);
+  padding: var(--sp-xs) var(--sp-sm);
+  border-radius: var(--rounded-md);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.option:hover { background: var(--surface-soft); }
+.option input[type="radio"],
+.option input[type="checkbox"] {
+  margin-top: 3px;
+  accent-color: var(--primary);
+  flex-shrink: 0;
+}
+.option label { cursor: pointer; color: var(--body); }
+.supplement {
+  margin-top: var(--sp-md);
+  padding-top: var(--sp-md);
+  border-top: 1px solid var(--hairline);
+}
+.supplement label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  display: block;
+  margin-bottom: var(--sp-xs);
+}
+.supplement textarea {
+  width: 100%;
+  min-height: 64px;
+  padding: var(--sp-sm);
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-md);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: var(--body);
+  background: var(--canvas);
+  resize: vertical;
+  transition: border-color 0.15s;
+}
+.supplement textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+.free-feedback textarea { min-height: 120px; }
+.footer {
+  margin-top: var(--sp-xxl);
+  padding-top: var(--sp-lg);
+  border-top: 1px solid var(--hairline);
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+}
+code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  background: var(--surface-soft);
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: var(--ink);
+}
+strong { color: var(--ink); }
+</style>
+</head>
+<body>
+
+<h1>Meta-Harness Human-Loop Survey — $VERSION</h1>
+<div class="meta">
+  <span>Target: harness-traj-weaver (skills + paradigm)</span>
+  <span>Feedback: yangjingla</span>
+</div>
+<p class="intro">本问卷评估 <strong>Meta-Harness 范式及其 skill 实现</strong>。前两部分关注 traj-display 的 UI/UX 质量，后两部分关注 Meta-Harness 范式原则的有效性。请在每次迭代后如实填写，反馈将直接驱动下一轮改进。</p>
+
+<!-- Part 1: traj-display Visual -->
+<h2>Part 1: traj-display 视觉</h2>
+
+<div class="question">
+  <h3>1.1 整体配色是否符合预期？</h3>
+  <div class="options">
+    <div class="option"><input type="radio" name="p1q1" id="p1q1a" value="A"><label for="p1q1a">A. 满意，不需要调整</label></div>
+    <div class="option"><input type="radio" name="p1q1" id="p1q1b" value="B"><label for="p1q1b">B. 基本满意，色调可微调</label></div>
+    <div class="option"><input type="radio" name="p1q1" id="p1q1c" value="C"><label for="p1q1c">C. 不满意，需要重新设计</label></div>
+  </div>
+  <div class="supplement"><label>补充说明</label><textarea name="p1q1_supp" placeholder="可选..."></textarea></div>
+</div>
+
+<div class="question">
+  <h3>1.2 左侧 TOC 操作类型标签（Thinking/Bash/Skill/Read/Write + 内容预览）是否清晰？</h3>
+  <div class="options">
+    <div class="option"><input type="radio" name="p1q2" id="p1q2a" value="A"><label for="p1q2a">A. 清晰，一眼可辨</label></div>
+    <div class="option"><input type="radio" name="p1q2" id="p1q2b" value="B"><label for="p1q2b">B. 基本可辨，部分类型颜色接近</label></div>
+    <div class="option"><input type="radio" name="p1q2" id="p1q2c" value="C"><label for="p1q2c">C. 不够清晰</label></div>
+  </div>
+  <div class="supplement"><label>补充说明</label><textarea name="p1q2_supp" placeholder="可选..."></textarea></div>
+</div>
+
+<div class="question">
+  <h3>1.3 TOC 可伸缩折叠功能是否实用？</h3>
+  <div class="options">
+    <div class="option"><input type="radio" name="p1q3" id="p1q3a" value="A"><label for="p1q3a">A. 非常实用</label></div>
+    <div class="option"><input type="radio" name="p1q3" id="p1q3b" value="B"><label for="p1q3b">B. 基本实用，但需要调整</label></div>
+    <div class="option"><input type="radio" name="p1q3" id="p1q3c" value="C"><label for="p1q3c">C. 不实用</label></div>
+  </div>
+  <div class="supplement"><label>补充说明</label><textarea name="p1q3_supp" placeholder="可选..."></textarea></div>
+</div>
+
+<!-- Part 2: traj-display Interaction -->
+<h2>Part 2: traj-display 交互</h2>
+
+<div class="question">
+  <h3>2.1 Block 级点击高亮动画是否帮助你追踪阅读位置？</h3>
+  <div class="options">
+    <div class="option"><input type="radio" name="p2q1" id="p2q1a" value="A"><label for="p2q1a">A. 是，明显提升追踪效率</label></div>
+    <div class="option"><input type="radio" name="p2q1" id="p2q1b" value="B"><label for="p2q1b">B. 有一些帮助</label></div>
+    <div class="option"><input type="radio" name="p2q1" id="p2q1c" value="C"><label for="p2q1c">C. 没什么帮助，动画干扰</label></div>
+  </div>
+  <div class="supplement"><label>补充说明</label><textarea name="p2q1_supp" placeholder="可选..."></textarea></div>
+</div>
+
+<div class="question">
+  <h3>2.2 按 Turn 折叠 + badge 标签的设计是否方便快速浏览？</h3>
+  <div class="options">
+    <div class="option"><input type="radio" name="p2q2" id="p2q2a" value="A"><label for="p2q2a">A. 非常方便</label></div>
+    <div class="option"><input type="radio" name="p2q2" id="p2q2b" value="B"><label for="p2q2b">B. 基本方便</label></div>
+    <div class="option"><input type="radio" name="p2q2" id="p2q2c" value="C"><label for="p2q2c">C. 不够方便</label></div>
+  </div>
+  <div class="supplement"><label>补充说明</label><textarea name="p2q2_supp" placeholder="可选..."></textarea></div>
+</div>
+
+<div class="question">
+  <h3>2.3 长内容的截断策略（thinking 3000 字符折叠、输出折叠）是否合理？</h3>
+  <div class="options">
+    <div class="option"><input type="radio" name="p2q3" id="p2q3a" value="A"><label for="p2q3a">A. 合理</label></div>
+    <div class="option"><input type="radio" name="p2q3" id="p2q3b" value="B"><label for="p2q3b">B. 希望调整阈值</label></div>
+    <div class="option"><input type="radio" name="p2q3" id="p2q3c" value="C"><label for="p2q3c">C. 希望不截断</label></div>
+  </div>
+  <div class="supplement"><label>补充说明</label><textarea name="p2q3_supp" placeholder="可选..."></textarea></div>
+</div>
+
+<div class="question">
+  <h3>2.4 统计数据面板的指标是否覆盖了你关心的维度？</h3>
+  <div class="options">
+    <div class="option"><input type="radio" name="p2q4" id="p2q4a" value="A"><label for="p2q4a">A. 完全覆盖</label></div>
+    <div class="option"><input type="radio" name="p2q4" id="p2q4b" value="B"><label for="p2q4b">B. 缺少某些指标</label></div>
+    <div class="option"><input type="radio" name="p2q4" id="p2q4c" value="C"><label for="p2q4c">C. 冗余</label></div>
+  </div>
+  <div class="supplement"><label>补充说明</label><textarea name="p2q4_supp" placeholder="可选..."></textarea></div>
+</div>
+
+<div class="question">
+  <h3>2.5 当前 demo session 是否典型？右侧内容区宽度是否合适？</h3>
+  <div class="options">
+    <div class="option"><input type="radio" name="p2q5" id="p2q5a" value="A"><label for="p2q5a">A. 合适</label></div>
+    <div class="option"><input type="radio" name="p2q5" id="p2q5b" value="B"><label for="p2q5b">B. 需要更宽/更窄</label></div>
+    <div class="option"><input type="radio" name="p2q5" id="p2q5c" value="C"><label for="p2q5c">C. 建议换 demo 数据</label></div>
+  </div>
+  <div class="supplement"><label>补充说明</label><textarea name="p2q5_supp" placeholder="可选..."></textarea></div>
+</div>
+
+<!-- Part 3: Meta-Harness Paradigm -->
+<h2>Part 3: Meta-Harness 范式</h2>
+
+<div class="question">
+  <h3>3.1 <strong>Filesystem as Memory</strong> — <code>.cache/</code> + <code>evals/</code> 的文件系统布局是否足够支撑 find → diagnose → propose 流程？</h3>
+  <div class="options">
+    <div class="option"><input type="radio" name="p3q1" id="p3q1a" value="A"><label for="p3q1a">A. 足够，不需要额外机制</label></div>
+    <div class="option"><input type="radio" name="p3q1" id="p3q1b" value="B"><label for="p3q1b">B. 基本够，偶尔需要搜索/索引</label></div>
+    <div class="option"><input type="radio" name="p3q1" id="p3q1c" value="C"><label for="p3q1c">C. 不够，文件系统太局限</label></div>
+  </div>
+  <div class="supplement"><label>补充说明</label><textarea name="p3q1_supp" placeholder="可选..."></textarea></div>
+</div>
+
+<div class="question">
+  <h3>3.2 <strong>Trace-level Reasoning</strong> — 直接阅读原始 JSONL + traj-display 可视化是否比聚合摘要更有诊断价值？</h3>
+  <div class="options">
+    <div class="option"><input type="radio" name="p3q2" id="p3q2a" value="A"><label for="p3q2a">A. 是，raw trace 信息量更大</label></div>
+    <div class="option"><input type="radio" name="p3q2" id="p3q2b" value="B"><label for="p3q2b">B. 两者互补，都需要</label></div>
+    <div class="option"><input type="radio" name="p3q2" id="p3q2c" value="C"><label for="p3q2c">C. 聚合摘要更高效</label></div>
+  </div>
+  <div class="supplement"><label>补充说明</label><textarea name="p3q2_supp" placeholder="可选..."></textarea></div>
+</div>
+
+<div class="question">
+  <h3>3.3 <strong>Search-set Feedback</strong> — 当前 search-set 评估结果是否提供了可操作的改进信号？</h3>
+  <div class="options">
+    <div class="option"><input type="radio" name="p3q3" id="p3q3a" value="A"><label for="p3q3a">A. 是，信号明确</label></div>
+    <div class="option"><input type="radio" name="p3q3" id="p3q3b" value="B"><label for="p3q3b">B. 部分有用</label></div>
+    <div class="option"><input type="radio" name="p3q3" id="p3q3c" value="C"><label for="p3q3c">C. 信号太弱</label></div>
+  </div>
+  <div class="supplement"><label>补充说明</label><textarea name="p3q3_supp" placeholder="可选..."></textarea></div>
+</div>
+
+<div class="question">
+  <h3>3.4 <strong>Self-improving</strong> — 本轮 harness 迭代相比之前是否有实质性进步？</h3>
+  <div class="options">
+    <div class="option"><input type="radio" name="p3q4" id="p3q4a" value="A"><label for="p3q4a">A. 是，明显进步</label></div>
+    <div class="option"><input type="radio" name="p3q4" id="p3q4b" value="B"><label for="p3q4b">B. 有进步但幅度不大</label></div>
+    <div class="option"><input type="radio" name="p3q4" id="p3q4c" value="C"><label for="p3q4c">C. 没有明显变化</label></div>
+    <div class="option"><input type="radio" name="p3q4" id="p3q4d" value="D"><label for="p3q4d">D. 退步</label></div>
+  </div>
+  <div class="supplement"><label>补充说明</label><textarea name="p3q4_supp" placeholder="可选..."></textarea></div>
+</div>
+
+<!-- Part 4: Workflow & Priority -->
+<h2>Part 4: Workflow & 优先级</h2>
+
+<div class="question">
+  <h3>4.1 五步流程中哪个环节目前最薄弱？</h3>
+  <div class="options">
+    <div class="option"><input type="radio" name="p4q1" id="p4q1a" value="A"><label for="p4q1a">A. Observe（找不到足够 trace）</label></div>
+    <div class="option"><input type="radio" name="p4q1" id="p4q1b" value="B"><label for="p4q1b">B. Diagnose（trace 难以解读）</label></div>
+    <div class="option"><input type="radio" name="p4q1" id="p4q1c" value="C"><label for="p4q1c">C. Propose（修改不够精准）</label></div>
+    <div class="option"><input type="radio" name="p4q1" id="p4q1d" value="D"><label for="p4q1d">D. Evaluate（验证不够严格）</label></div>
+    <div class="option"><input type="radio" name="p4q1" id="p4q1e" value="E"><label for="p4q1e">E. Iterate（反馈循环没闭合）</label></div>
+  </div>
+  <div class="supplement"><label>补充说明</label><textarea name="p4q1_supp" placeholder="可选..."></textarea></div>
+</div>
+
+<div class="question">
+  <h3>4.2 下一轮迭代应优先做什么？（多选）</h3>
+  <div class="options">
+    <div class="option"><input type="checkbox" name="p4q2" value="A"><label>A. 增强 traj-display（搜索、导出、多 session 对比、暗色模式）</label></div>
+    <div class="option"><input type="checkbox" name="p4q2" value="B"><label>B. 完善 metric（接入实际评估数据）</label></div>
+    <div class="option"><input type="checkbox" name="p4q2" value="C"><label>C. 增加 token 消耗统计</label></div>
+    <div class="option"><input type="checkbox" name="p4q2" value="D"><label>D. 支持标注/批注功能</label></div>
+    <div class="option"><input type="checkbox" name="p4q2" value="E"><label>E. 新增 skill</label></div>
+    <div class="option"><input type="checkbox" name="p4q2" value="F"><label>F. 重构已有 skill</label></div>
+  </div>
+  <div class="supplement"><label>补充说明</label><textarea name="p4q2_supp" placeholder="可选..."></textarea></div>
+</div>
+
+<div class="question">
+  <h3>4.3 四个原则中哪个在当前实现中最薄弱？</h3>
+  <div class="options">
+    <div class="option"><input type="radio" name="p4q3" id="p4q3a" value="A"><label for="p4q3a">A. Filesystem as memory</label></div>
+    <div class="option"><input type="radio" name="p4q3" id="p4q3b" value="B"><label for="p4q3b">B. Trace-level reasoning</label></div>
+    <div class="option"><input type="radio" name="p4q3" id="p4q3c" value="C"><label for="p4q3c">C. Search-set feedback</label></div>
+    <div class="option"><input type="radio" name="p4q3" id="p4q3d" value="D"><label for="p4q3d">D. Self-improving</label></div>
+  </div>
+  <div class="supplement"><label>补充说明</label><textarea name="p4q3_supp" placeholder="可选..."></textarea></div>
+</div>
+
+<div class="question">
+  <h3>4.4 整体满意度（1-5 分）</h3>
+  <div class="options">
+    <div class="option"><input type="radio" name="p4q4" id="p4q4a" value="1"><label for="p4q4a">1 — 需要重做</label></div>
+    <div class="option"><input type="radio" name="p4q4" id="p4q4b" value="2"><label for="p4q4b">2 — 问题较多</label></div>
+    <div class="option"><input type="radio" name="p4q4" id="p4q4c" value="3"><label for="p4q4c">3 — 基本可用</label></div>
+    <div class="option"><input type="radio" name="p4q4" id="p4q4d" value="4"><label for="p4q4d">4 — 满意</label></div>
+    <div class="option"><input type="radio" name="p4q4" id="p4q4e" value="5"><label for="p4q4e">5 — 非常满意</label></div>
+  </div>
+  <div class="supplement"><label>补充说明</label><textarea name="p4q4_supp" placeholder="可选..."></textarea></div>
+</div>
+
+<div class="question">
+  <h3>4.5 任何额外的想法或建议？</h3>
+  <div class="supplement free-feedback"><textarea name="p4q5" placeholder="自由反馈..."></textarea></div>
+</div>
+
+<div class="footer">
+  本问卷归档至 <code>evals/$VERSION/outputs/meta-harness-survey.html</code>，作为下一迭代的核心输入。
+</div>
+
+</body>
+</html>

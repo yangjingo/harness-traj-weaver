@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meta-Harness — Trajectory $session_id</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+$traj_css
+</style></head><body class="toc-expanded">
+
+<nav class="side-toc" id="side-toc">
+  <button class="toc-toggle" id="toc-toggle" onclick="toggleToc()" title="Collapse TOC">&laquo;</button>
+  <div class="toc-full">
+    <h2>Meta-Harness</h2>
+    <div class="toc-version">Trajectory — $toc_count turns</div>
+    <p class="toc-hint">Click any entry to jump &mdash; highlighted blocks show the exact location.</p>
+    <div class="toc-list">$toc_html</div>
+  </div>
+  <div class="toc-collapsed-placeholder">
+    <span class="toc-dots">&#8942;</span>
+    <span class="toc-dots">&#8942;</span>
+    <span class="toc-dots">&#8942;</span>
+  </div>
+</nav>
+
+<h1>Conversation Trajectory</h1>
+
+<div class="stats">
+<div class="stat"><div class="stat-num primary">$n_user_turns</div><div class="stat-label">User Turns</div></div>
+<div class="stat"><div class="stat-num accent-teal">$n_skill_calls</div><div class="stat-label">Skill Calls</div></div>
+<div class="stat"><div class="stat-num primary">$n_user_interventions</div><div class="stat-label">Interventions</div></div>
+<div class="stat"><div class="stat-num accent-amber">$n_read_files</div><div class="stat-label">File Reads</div></div>
+<div class="stat"><div class="stat-num">$n_write_files</div><div class="stat-label">File Writes</div></div>
+<div class="stat"><div class="stat-num">$n_tool_use</div><div class="stat-label">Tool Calls</div></div>
+<div class="stat"><div class="stat-num">$n_thinking</div><div class="stat-label">Thinking</div></div>
+</div>
+
+<div class="timeline">
+$timeline_html
+</div>
+
+<script>
+(function(){
+  var ACTIVE_CLS='active',FLASH_CLS='flash-highlight',currentActive=null;
+
+  function clearFlash(el){el.classList.remove(FLASH_CLS)}
+  function setActive(tocItem){
+    if(currentActive) currentActive.classList.remove(ACTIVE_CLS);
+    tocItem.classList.add(ACTIVE_CLS);
+    currentActive=tocItem;
+  }
+
+  function flashTarget(id){
+    var el=document.getElementById(id);
+    if(!el) return;
+    el.classList.remove(FLASH_CLS);
+    void el.offsetWidth;
+    el.classList.add(FLASH_CLS);
+    // If block is inside a turn, make sure the turn is open
+    var turn=el.closest('.tl-turn');
+    if(turn) turn.classList.add('open');
+    el.scrollIntoView({behavior:'smooth',block:'center'});
+    setTimeout(function(){clearFlash(el)},2000);
+  }
+
+  document.querySelectorAll('.toc-item').forEach(function(item){
+    item.addEventListener('click',function(e){
+      e.preventDefault();
+      var href=this.getAttribute('href');
+      if(!href) return;
+      var id=href.replace('#','');
+      setActive(this);
+      flashTarget(id);
+      history.replaceState(null,null,href);
+    });
+  });
+
+  if(window.location.hash){
+    var id=window.location.hash.replace('#','');
+    var el=document.getElementById(id);
+    if(el){
+      var turn=el.closest('.tl-turn');
+      if(turn) turn.classList.add('open');
+      setTimeout(function(){el.scrollIntoView({behavior:'smooth',block:'center'})},100);
+      var toc=document.querySelector('.toc-item[href="'+window.location.hash+'"]');
+      if(toc) setActive(toc);
+    }
+  }
+})();
+
+function toggleToc(){
+  var body=document.body;
+  var btn=document.getElementById('toc-toggle');
+  if(body.classList.contains('toc-expanded')){
+    body.classList.remove('toc-expanded');
+    body.classList.add('toc-collapsed');
+    btn.innerHTML='&raquo;';
+    btn.title='Expand TOC';
+  } else {
+    body.classList.remove('toc-collapsed');
+    body.classList.add('toc-expanded');
+    btn.innerHTML='&laquo;';
+    btn.title='Collapse TOC';
+  }
+}
+</script>
+<div class="source-path">Source: $source_file</div>
+<p style="color:var(--muted);font-size:12px;text-align:center;margin-top:24px">Generated $today &middot; Meta-Harness traj-display v0.1.0</p>
+</body></html>

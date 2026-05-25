@@ -1,0 +1,49 @@
+/* === Anthropic Design System — Canonical Token Set for Meta-Harness === */
+:root {
+  /* Background hierarchy */
+  --canvas: #faf9f5;
+  --surface-soft: #f5f0e8;
+  --surface-card: #efe9de;
+  --surface-dark: #181715;
+  --surface-dark-elevated: #252320;
+
+  /* Borders & dividers */
+  --hairline: #e6dfd8;
+  --hairline-soft: #ebe6df;
+
+  /* Text hierarchy */
+  --ink: #141413;
+  --body-strong: #252523;
+  --body: #3d3d3a;
+  --muted: #6c6a64;
+  --muted-soft: #8e8b82;
+
+  /* Semantic accents */
+  --primary: #cc785c;
+  --primary-active: #a9583e;
+  --accent-teal: #5db8a6;
+  --accent-amber: #e8a55a;
+
+  /* On-colors */
+  --on-primary: #ffffff;
+  --on-dark: #faf9f5;
+  --on-dark-soft: #a09d96;
+
+  /* Status colors */
+  --success: #5db872;
+  --warning: #d4a017;
+  --error: #c64545;
+
+  /* Radii */
+  --rounded-md: 8px;
+  --rounded-lg: 12px;
+  --rounded-pill: 9999px;
+
+  /* Spacing scale */
+  --sp-xs: 8px;
+  --sp-sm: 12px;
+  --sp-md: 16px;
+  --sp-lg: 24px;
+  --sp-xl: 32px;
+  --sp-xxl: 48px;
+}

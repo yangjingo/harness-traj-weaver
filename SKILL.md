@@ -30,3 +30,41 @@ description: Meta-Harness skill — minimal outer loop that gives the proposer u
 ```
 
 The outer loop stays minimal. No scaffolding, no memory database — just the filesystem.
+
+## Eval
+
+All evaluation artifacts follow versioned layout under `evals/`:
+
+```
+evals/
+  v0.1.0/
+    inputs/
+      session.jsonl       — archived session for trajectory demo
+    outputs/
+      traj.html           — generated trajectory HTML
+      meta-harness-survey.html — unified Meta-Harness feedback survey
+```
+
+The human-loop survey covers both skill-level UI/UX and Meta-Harness paradigm assessment. It is archived under `evals/v{version}/outputs/` as a key artifact driving the next iteration.
+
+## Skills
+
+Specialized skills for visualizing Meta-Harness data:
+
+| Skill | Path | Purpose |
+|---|---|---|
+| **traj-display** | `skills/traj-display/` | Claude Code session trajectory HTML generator — timeline view with TOC, thinking blocks, tool calls |
+| **survey** | `skills/survey/` | Feedback survey generator — two types: qa (skill-level UI/UX) and human-loop (Meta-Harness paradigm assessment), archived as eval inputs |
+| **metric** | `skills/metric/` | Evaluation metrics dashboard HTML generator — pipeline timing, parse quality, benchmarks |
+| **theme** | `skills/theme/` | Theme CSS tokens and visual language for all HTML output |
+
+### Quick Start
+
+```bash
+# Generate a trajectory view from a Claude Code session
+python skills/traj-display/scripts/generate_traj.py \
+  --input ~/.claude/projects/<project>/<session>.jsonl \
+  --output traj.html
+```
+
+All generated HTML files are self-contained (CSS inline, no build step). Open directly in a browser.

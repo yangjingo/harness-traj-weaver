@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>$SKILL_NAME QA Survey — $VERSION</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --canvas: #faf9f5;
+  --surface-soft: #f5f0e8;
+  --surface-card: #efe9de;
+  --surface-dark: #181715;
+  --hairline: #e6dfd8;
+  --ink: #141413;
+  --body: #3d3d3a;
+  --muted: #6c6a64;
+  --primary: #cc785c;
+  --accent-teal: #5db8a6;
+  --accent-amber: #e8a55a;
+  --success: #5db872;
+  --error: #c64545;
+  --rounded-md: 8px;
+  --rounded-lg: 12px;
+  --sp-xs: 8px;
+  --sp-sm: 12px;
+  --sp-md: 16px;
+  --sp-lg: 24px;
+  --sp-xl: 32px;
+  --sp-xxl: 48px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--body);
+  background: var(--canvas);
+  max-width: 780px;
+  margin: 0 auto;
+  padding: var(--sp-xxl) var(--sp-lg);
+}
+h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 42px;
+  font-weight: 400;
+  color: var(--ink);
+  letter-spacing: -0.5px;
+  margin-bottom: var(--sp-xs);
+}
+.meta {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: var(--sp-xl);
+  padding-bottom: var(--sp-lg);
+  border-bottom: 1px solid var(--hairline);
+}
+.meta span { margin-right: var(--sp-lg); }
+h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px;
+  font-weight: 400;
+  color: var(--ink);
+  margin-top: var(--sp-xxl);
+  margin-bottom: var(--sp-md);
+  padding-bottom: var(--sp-xs);
+  border-bottom: 2px solid var(--primary);
+}
+.question {
+  background: var(--surface-card);
+  border-radius: var(--rounded-lg);
+  padding: var(--sp-lg);
+  margin-bottom: var(--sp-lg);
+  border: 1px solid var(--hairline);
+}
+.question h3 {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  margin-bottom: var(--sp-md);
+}
+.options { display: flex; flex-direction: column; gap: var(--sp-xs); }
+.option {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-sm);
+  padding: var(--sp-xs) var(--sp-sm);
+  border-radius: var(--rounded-md);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.option:hover { background: var(--surface-soft); }
+.option input[type="radio"],
+.option input[type="checkbox"] {
+  margin-top: 3px;
+  accent-color: var(--primary);
+  flex-shrink: 0;
+}
+.option label { cursor: pointer; color: var(--body); }
+.supplement {
+  margin-top: var(--sp-md);
+  padding-top: var(--sp-md);
+  border-top: 1px solid var(--hairline);
+}
+.supplement label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  display: block;
+  margin-bottom: var(--sp-xs);
+}
+.supplement textarea {
+  width: 100%;
+  min-height: 64px;
+  padding: var(--sp-sm);
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-md);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: var(--body);
+  background: var(--canvas);
+  resize: vertical;
+  transition: border-color 0.15s;
+}
+.supplement textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+.free-feedback textarea { min-height: 120px; }
+.footer {
+  margin-top: var(--sp-xxl);
+  padding-top: var(--sp-lg);
+  border-top: 1px solid var(--hairline);
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+}
+code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  background: var(--surface-soft);
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: var(--ink);
+}
+.submit-row {
+  margin-top: var(--sp-xl);
+  text-align: center;
+}
+.submit-row button {
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  padding: var(--sp-sm) var(--sp-xl);
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--rounded-pill);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.submit-row button:hover { background: #a9583e; }
+</style>
+</head>
+<body>
+
+<h1>QA Survey — $SKILL_NAME $VERSION</h1>
+<div class="meta">
+  <span>Target: harness-traj-weaver skills/$SKILL_NAME</span>
+  <span>Feedback: yangjingla</span>
+</div>
+<p style="margin-bottom: var(--sp-lg); color: var(--muted);">针对本次 <code>$SKILL_NAME</code> 技能产出的结果，请逐项回答以下问题。每道选择题后附有补充说明区。</p>
+
+<!-- A. Overall Visual -->
+<h2>A. 整体视觉</h2>
+
+<div class="question">
+  <h3>A1. 整体配色是否符合预期？</h3>
+  <div class="options">
+    <div class="option"><input type="radio" name="a1" id="a1a" value="A"><label for="a1a">A. 满意，不需要调整</label></div>
+    <div class="option"><input type="radio" name="a1" id="a1b" value="B"><label for="a1b">B. 基本满意，色调可微调</label></div>
+    <div class="option"><input type="radio" name="a1" id="a1c" value="C"><label for="a1c">C. 不满意，需要重新设计</label></div>
+  </div>
+  <div class="supplement"><label>补充说明</label><textarea name="a1_supp" placeholder="可选..."></textarea></div>
+</div>
+
+<div class="question">
+  <h3>A2. 字体搭配（Cormorant Garamond 标题 + Inter 正文 + JetBrains Mono 代码）是否合适？</h3>
+  <div class="options">
+    <div class="option"><input type="radio" name="a2" id="a2a" value="A"><label for="a2a">A. 合适，保持现状</label></div>
+    <div class="option"><input type="radio" name="a2" id="a2b" value="B"><label for="a2b">B. 标题字体需要更换</label></div>
+    <div class="option"><input type="radio" name="a2" id="a2c" value="C"><label for="a2c">C. 正文字体需要更换</label></div>
+    <div class="option"><input type="radio" name="a2" id="a2d" value="D"><label for="a2d">D. 代码字体需要更换</label></div>
+  </div>
+  <div class="supplement"><label>补充说明</label><textarea name="a2_supp" placeholder="可选..."></textarea></div>
+</div>
+
+<div class="question">
+  <h3>A3. 页面布局是否合理？</h3>
+  <div class="options">
+    <div class="option"><input type="radio" name="a3" id="a3a" value="A"><label for="a3a">A. 合理，保持现状</label></div>
+    <div class="option"><input type="radio" name="a3" id="a3b" value="B"><label for="a3b">B. 部分布局需要调整</label></div>
+    <div class="option"><input type="radio" name="a3" id="a3c" value="C"><label for="a3c">C. 建议换成其他布局</label></div>
+  </div>
+  <div class="supplement"><label>补充说明</label><textarea name="a3_supp" placeholder="可选..."></textarea></div>
+</div>
+
+<!-- B. Navigation / TOC -->
+<h2>B. 导航 / TOC</h2>
+
+<div class="question">
+  <h3>B1. TOC 条目分类是否提升了可读性？</h3>
+  <div class="options">
+    <div class="option"><input type="radio" name="b1" id="b1a" value="A"><label for="b1a">A. 是，明显提升</label></div>
+    <div class="option"><input type="radio" name="b1" id="b1b" value="B"><label for="b1b">B. 有一点提升</label></div>
+    <div class="option"><input type="radio" name="b1" id="b1c" value="C"><label for="b1c">C. 感觉一般</label></div>
+    <div class="option"><input type="radio" name="b1" id="b1d" value="D"><label for="b1d">D. 不如原来的设计</label></div>
+  </div>
+  <div class="supplement"><label>补充说明</label><textarea name="b1_supp" placeholder="可选..."></textarea></div>
+</div>
+
+<div class="question">
+  <h3>B2. 各类型条目的图标和颜色区分是否清晰？</h3>
+  <div class="options">
+    <div class="option"><input type="radio" name="b2" id="b2a" value="A"><label for="b2a">A. 清晰，一眼可辨</label></div>
+    <div class="option"><input type="radio" name="b2" id="b2b" value="B"><label for="b2b">B. 基本可辨，但部分类型的颜色过于接近</label></div>
+    <div class="option"><input type="radio" name="b2" id="b2c" value="C"><label for="b2c">C. 不够清晰，需要重新设计</label></div>
+  </div>
+  <div class="supplement"><label>补充说明</label><textarea name="b2_supp" placeholder="可选..."></textarea></div>
+</div>
+
+<div class="question">
+  <h3>B3. TOC 的点击跳转行为是否符合预期？</h3>
+  <div class="options">
+    <div class="option"><input type="radio" name="b3" id="b3a" value="A"><label for="b3a">A. 符合预期</label></div>
+    <div class="option"><input type="radio" name="b3" id="b3b" value="B"><label for="b3b">B. 跳转不准确</label></div>
+    <div class="option"><input type="radio" name="b3" id="b3c" value="C"><label for="b3c">C. 建议增加其他交互（如高亮当前项）</label></div>
+  </div>
+  <div class="supplement"><label>补充说明</label><textarea name="b3_supp" placeholder="可选..."></textarea></div>
+</div>
+
+<!-- C. Content Display -->
+<h2>C. 内容展示</h2>
+
+<div class="question">
+  <h3>C1. 按 Turn 折叠的设计是否实用？</h3>
+  <div class="options">
+    <div class="option"><input type="radio" name="c1" id="c1a" value="A"><label for="c1a">A. 非常实用，方便快速浏览</label></div>
+    <div class="option"><input type="radio" name="c1" id="c1b" value="B"><label for="c1b">B. 基本实用，但默认展开/折叠策略需要调整</label></div>
+    <div class="option"><input type="radio" name="c1" id="c1c" value="C"><label for="c1c">C. 不实用，建议恢复平铺展示</label></div>
+  </div>
+  <div class="supplement"><label>补充说明</label><textarea name="c1_supp" placeholder="可选..."></textarea></div>
+</div>
+
+<div class="question">
+  <h3>C2. Turn 头部的操作标签是否有助于快速理解内容？</h3>
+  <div class="options">
+    <div class="option"><input type="radio" name="c2" id="c2a" value="A"><label for="c2a">A. 是，非常有帮助</label></div>
+    <div class="option"><input type="radio" name="c2" id="c2b" value="B"><label for="c2b">B. 有一些帮助</label></div>
+    <div class="option"><input type="radio" name="c2" id="c2c" value="C"><label for="c2c">C. 没什么帮助</label></div>
+    <div class="option"><input type="radio" name="c2" id="c2d" value="D"><label for="c2d">D. 造成干扰，建议去掉</label></div>
+  </div>
+  <div class="supplement"><label>补充说明</label><textarea name="c2_supp" placeholder="可选..."></textarea></div>
+</div>
+
+<div class="question">
+  <h3>C3. 长内容（thinking / output）的折叠截断策略是否合理？</h3>
+  <div class="options">
+    <div class="option"><input type="radio" name="c3" id="c3a" value="A"><label for="c3a">A. 合理，满足需求</label></div>
+    <div class="option"><input type="radio" name="c3" id="c3b" value="B"><label for="c3b">B. 希望调整折叠阈值</label></div>
+    <div class="option"><input type="radio" name="c3" id="c3c" value="C"><label for="c3c">C. 希望完全不折叠，全部展示</label></div>
+  </div>
+  <div class="supplement"><label>补充说明</label><textarea name="c3_supp" placeholder="可选..."></textarea></div>
+</div>
+
+<div class="question">
+  <h3>C4. Tool 调用块的信息密度是否合适？</h3>
+  <div class="options">
+    <div class="option"><input type="radio" name="c4" id="c4a" value="A"><label for="c4a">A. 合适，不多不少</label></div>
+    <div class="option"><input type="radio" name="c4" id="c4b" value="B"><label for="c4b">B. 输出应该默认展开而非折叠</label></div>
+    <div class="option"><input type="radio" name="c4" id="c4c" value="C"><label for="c4c">C. 输入摘要太短，需要更多上下文</label></div>
+    <div class="option"><input type="radio" name="c4" id="c4d" value="D"><label for="c4d">D. 需要显示更多字段</label></div>
+  </div>
+  <div class="supplement"><label>补充说明</label><textarea name="c4_supp" placeholder="可选..."></textarea></div>
+</div>
+
+<div class="question">
+  <h3>C5. 移动端适配是否满足需求？</h3>
+  <div class="options">
+    <div class="option"><input type="radio" name="c5" id="c5a" value="A"><label for="c5a">A. 满足需求</label></div>
+    <div class="option"><input type="radio" name="c5" id="c5b" value="B"><label for="c5b">B. 需要改进</label></div>
+    <div class="option"><input type="radio" name="c5" id="c5c" value="C"><label for="c5c">C. 暂不考虑移动端</label></div>
+  </div>
+  <div class="supplement"><label>补充说明</label><textarea name="c5_supp" placeholder="可选..."></textarea></div>
+</div>
+
+<!-- D. Data & Content -->
+<h2>D. 数据与内容</h2>
+
+<div class="question">
+  <h3>D1. 内容截断策略是否合理？</h3>
+  <div class="options">
+    <div class="option"><input type="radio" name="d1" id="d1a" value="A"><label for="d1a">A. 合理</label></div>
+    <div class="option"><input type="radio" name="d1" id="d1b" value="B"><label for="d1b">B. 需要更长的截断</label></div>
+    <div class="option"><input type="radio" name="d1" id="d1c" value="C"><label for="d1c">C. 建议不截断，完整展示</label></div>
+  </div>
+  <div class="supplement"><label>补充说明</label><textarea name="d1_supp" placeholder="可选..."></textarea></div>
+</div>
+
+<div class="question">
+  <h3>D2. 统计数据面板的指标选择是否覆盖了你关心的维度？</h3>
+  <div class="options">
+    <div class="option"><input type="radio" name="d2" id="d2a" value="A"><label for="d2a">A. 完全覆盖</label></div>
+    <div class="option"><input type="radio" name="d2" id="d2b" value="B"><label for="d2b">B. 基本覆盖，但缺少某些指标</label></div>
+    <div class="option"><input type="radio" name="d2" id="d2c" value="C"><label for="d2c">C. 冗余，建议删减</label></div>
+  </div>
+  <div class="supplement"><label>补充说明</label><textarea name="d2_supp" placeholder="可选..."></textarea></div>
+</div>
+
+<div class="question">
+  <h3>D3. 当前 demo 展现的内容是否典型？</h3>
+  <div class="options">
+    <div class="option"><input type="radio" name="d3" id="d3a" value="A"><label for="d3a">A. 非常典型，很好地展示了功能</label></div>
+    <div class="option"><input type="radio" name="d3" id="d3b" value="B"><label for="d3b">B. 基本可以，但建议换一个更有代表性的数据</label></div>
+    <div class="option"><input type="radio" name="d3" id="d3c" value="C"><label for="d3c">C. 不够好，建议改用其他数据</label></div>
+  </div>
+  <div class="supplement"><label>补充说明</label><textarea name="d3_supp" placeholder="可选..."></textarea></div>
+</div>
+
+<!-- E. Missing Features -->
+<h2>E. 缺失功能</h2>
+
+<div class="question">
+  <h3>E1. 你最希望在下一版本看到哪些功能？（多选）</h3>
+  <div class="options">
+    <div class="option"><input type="checkbox" name="e1" value="A"><label>A. 搜索/过滤内容（Ctrl+F 全文搜索）</label></div>
+    <div class="option"><input type="checkbox" name="e1" value="B"><label>B. Token 消耗统计</label></div>
+    <div class="option"><input type="checkbox" name="e1" value="C"><label>C. 暗色模式</label></div>
+    <div class="option"><input type="checkbox" name="e1" value="D"><label>D. 导出 PDF</label></div>
+    <div class="option"><input type="checkbox" name="e1" value="E"><label>E. 多 session 对比视图</label></div>
+    <div class="option"><input type="checkbox" name="e1" value="F"><label>F. 时间线缩放（按小时/分钟聚合）</label></div>
+    <div class="option"><input type="checkbox" name="e1" value="G"><label>G. 标注/批注功能</label></div>
+    <div class="option"><input type="checkbox" name="e1" value="H"><label>H. 其他</label></div>
+  </div>
+  <div class="supplement"><label>补充说明</label><textarea name="e1_supp" placeholder="可选..."></textarea></div>
+</div>
+
+<div class="question">
+  <h3>E2. 是否有其他改进建议？</h3>
+  <div class="supplement free-feedback"><textarea name="e2" placeholder="自由反馈..."></textarea></div>
+</div>
+
+<!-- F. Overall Rating -->
+<h2>F. 总体评分</h2>
+
+<div class="question">
+  <h3>F1. 整体满意度（1-5 分，5 分为最高）</h3>
+  <div class="options">
+    <div class="option"><input type="radio" name="f1" id="f1a" value="1"><label for="f1a">1 — 需要大幅重做</label></div>
+    <div class="option"><input type="radio" name="f1" id="f1b" value="2"><label for="f1b">2 — 有亮点但问题较多</label></div>
+    <div class="option"><input type="radio" name="f1" id="f1c" value="3"><label for="f1c">3 — 基本可用，需要改进</label></div>
+    <div class="option"><input type="radio" name="f1" id="f1d" value="4"><label for="f1d">4 — 满意，少量细节可优化</label></div>
+    <div class="option"><input type="radio" name="f1" id="f1e" value="5"><label for="f1e">5 — 非常满意，可以直接使用</label></div>
+  </div>
+  <div class="supplement"><label>补充说明</label><textarea name="f1_supp" placeholder="可选..."></textarea></div>
+</div>
+
+<div class="question">
+  <h3>F2. 是否认为 <code>$SKILL_NAME</code> 达到了预期目标？</h3>
+  <div class="options">
+    <div class="option"><input type="radio" name="f2" id="f2a" value="A"><label for="f2a">A. 是，完全符合</label></div>
+    <div class="option"><input type="radio" name="f2" id="f2b" value="B"><label for="f2b">B. 基本符合，但需要补充</label></div>
+    <div class="option"><input type="radio" name="f2" id="f2c" value="C"><label for="f2c">C. 还不够，和预期差距较大</label></div>
+  </div>
+  <div class="supplement"><label>补充说明</label><textarea name="f2_supp" placeholder="可选..."></textarea></div>
+</div>
+
+<div class="footer">
+  本问卷结果将归档至 <code>evals/$VERSION/inputs/</code>，作为下一迭代的重要输入。感谢你的反馈！
+</div>
+
+</body>
+</html>
