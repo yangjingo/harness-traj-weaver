@@ -23,7 +23,7 @@ description: Meta-Harness skill — minimal outer loop that gives the proposer u
 ## Filesystem Layout
 
 ```
-.cache/
+.metaharness/
   traces/       — execution traces from prior runs
   candidates/   — candidate harness outputs
   feedback/     — search-set evaluation results
@@ -33,38 +33,60 @@ The outer loop stays minimal. No scaffolding, no memory database — just the fi
 
 ## Eval
 
-All evaluation artifacts follow versioned layout under `evals/`:
+All evaluation artifacts follow versioned layout under `.metaharness/`:
 
 ```
-evals/
+.metaharness/
   v0.1.0/
-    inputs/
-      session.jsonl       — archived session for trajectory demo
     outputs/
-      meta-harness-66c583c5-traj.html — generated trajectory HTML
-      meta-harness-66c583c5-survey.html — unified Meta-Harness feedback survey
+      traj.html       — baseline trajectory
+      survey.html     — baseline survey
+  v0.2.0/
+    outputs/
+      traj-79283bb1.html  — session trajectory
 ```
 
-The human-loop survey covers both skill-level UI/UX and Meta-Harness paradigm assessment. It is archived under `evals/v{version}/outputs/` as a key artifact driving the next iteration.
+The human-loop survey covers both skill-level UI/UX and Meta-Harness paradigm assessment. It is archived under `.metaharness/v{version}/outputs/` as a key artifact driving the next iteration.
 
-## Skills
+## Hook Integration
 
-Specialized skills for visualizing Meta-Harness data:
+This skill is designed to be triggered by git hooks — not run standalone scripts. Hooks invoke the skill, which then runs the full Observe→Diagnose→Propose→Evaluate loop.
 
-| Skill | Path | Purpose |
-|---|---|---|
-| **traj** | `skills/traj/` | Claude Code session trajectory HTML generator — timeline view with TOC, thinking blocks, tool calls |
-| **survey** | `skills/survey/` | Feedback survey generator — two types: qa (skill-level UI/UX) and human-loop (Meta-Harness paradigm assessment), archived as eval inputs |
-| **metric** | `skills/metric/` | Evaluation metrics dashboard HTML generator — pipeline timing, parse quality, benchmarks |
-| **theme** | `skills/theme/` | Theme CSS tokens and visual language for all HTML output |
+### Commit Hook (`pre-commit`)
 
-### Quick Start
+Triggered on `git commit`. Runs a lightweight review of staged changes:
+
+1. **Observe** — Read `git diff --cached` + commit message
+2. **Diagnose** — Check changes against search-set principles
+3. **Evaluate** — Score 0-5. Block commit if below threshold.
+4. Write results to `.metaharness/v{version}/feedback/commit-{short-hash}.json`
+
+### Push Hook (`pre-push`)
+
+Triggered on `git push`. Runs the full harness cycle:
+
+1. **Observe** — Read all commits being pushed + prior `.metaharness/` traces
+2. **Diagnose** — Root-cause analysis of any quality regressions
+3. **Propose** — Generate targeted improvement suggestions
+4. **Evaluate** — Full search-set validation
+5. Generate `traj-viewer.html` + `human-loop.html` → `.metaharness/v{version}/`
+
+### Installation
+
+The skill ships with an install script. After cloning, run once to set up both the skill and hooks:
 
 ```bash
-# Generate a trajectory view from a Claude Code session
-python skills/traj/scripts/generate_traj.py \
-  --input ~/.claude/projects/<project>/<session>.jsonl \
-  --output meta-harness-66c583c5-traj.html
+git clone https://github.com/yangjing/harness-traj-weaver.git ~/.claude/skills/harness-traj-weaver
+bash ~/.claude/skills/harness-traj-weaver/scripts/install.sh
 ```
 
-All generated HTML files are self-contained (CSS inline, no build step). Open directly in a browser.
+`install.sh` does two things:
+1. Registers the skill in `~/.claude/settings.json`
+2. Installs `hooks/pre-commit` and `hooks/pre-push` into `.git/hooks/` of the current repo
+
+For manual hook installation in an existing repo:
+
+```bash
+cp ~/.claude/skills/harness-traj-weaver/hooks/pre-commit .git/hooks/pre-commit
+cp ~/.claude/skills/harness-traj-weaver/hooks/pre-push .git/hooks/pre-push
+```

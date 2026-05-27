@@ -1,10 +1,22 @@
-"""Minimal HTTP server for Meta-Harness dev — serves static files + POST feedback."""
+"""Archive human-loop feedback — serves survey HTML + POST endpoint that writes to .metaharness/."""
 import http.server
 import json
 import os
+import subprocess
 import sys
 
-OUTPUT_DIR = os.path.join(os.path.dirname(__file__), 'evals', 'v0.1.0', 'outputs')
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+
+def _detect_version():
+    try:
+        tag = subprocess.check_output(['git', 'describe', '--tags', '--always'],
+                                      cwd=REPO_ROOT, text=True).strip()
+        return tag
+    except Exception:
+        return 'v0.1.0'
+
+VERSION = os.environ.get('METAHARNESS_VERSION', _detect_version())
+OUTPUT_DIR = os.path.join(REPO_ROOT, '.metaharness', VERSION, 'outputs')
 
 class Handler(http.server.SimpleHTTPRequestHandler):
     def do_POST(self):
@@ -19,7 +31,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
-            self.wfile.write(json.dumps({'ok': True, 'path': f'evals/v0.1.0/outputs/{fname}'}).encode())
+            self.wfile.write(json.dumps({'ok': True, 'path': f'.metaharness/{VERSION}/outputs/{fname}'}).encode())
         else:
             self.send_response(404)
             self.end_headers()

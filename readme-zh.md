@@ -11,24 +11,31 @@
 
 ---
 
-## 快速开始
+## 安装
 
 ```bash
-git clone https://github.com/yangjing/harness-traj-weaver.git
-cd harness-traj-weaver
+git clone https://github.com/yangjing/harness-traj-weaver.git ~/.claude/skills/harness-traj-weaver
+```
+
+安装后，skill 会在下次启动时自动加载，无需额外配置。
+
+## 使用
+
+```bash
+cd ~/.claude/skills/harness-traj-weaver
 
 # 从 Claude Code 会话生成轨迹
-python skills/traj-display/scripts/generate_traj.py \
+python skills/traj/scripts/generate_traj.py \
   --input ~/.claude/projects/<project>/<session>.jsonl \
   --output traj.html
 
 # 生成当前迭代的反馈问卷
-python skills/human-loop/scripts/generate_survey.py \
+python skills/survey/scripts/generate_survey.py \
   --version v0.1.0 \
   --output survey.html
 
 # 开发服务器（支持 POST 提交反馈）
-python server.py 8767
+python skills/survey/scripts/archive_feedback.py 8767
 ```
 
 ---
@@ -66,17 +73,12 @@ python server.py 8767
 
 ---
 
-## 评估 — v0.1.0
+## 评估 — v0.2.0
 
 ```
-evals/v0.1.0/
-  inputs/
-    session.jsonl
+.metaharness/v0.2.0/
   outputs/
-    meta-harness-66c583c5-traj.html      ← 轨迹展示
-    meta-harness-66c583c5-session.jsonl  ← 存档会话
-    meta-harness-66c583c5-survey.html    ← 人机反馈问卷
-    meta-harness-66c583c5-feedback-*.json ← 收集到的反馈
+    traj-79283bb1.html  ← 当前 session 轨迹
 ```
 
 ---

@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# === harness-traj-weaver — pre-push hook ===
+# Triggers the full harness-traj-weaver skill cycle on git push.
+# Observe→Diagnose→Propose→Evaluate, then generate traj + survey HTML.
+#
+# Install:  cp hooks/pre-push .git/hooks/pre-push && chmod +x .git/hooks/pre-push
+#
+# Config:
+#   git config metaharness.skip true     # skip hook entirely
+
+set -euo pipefail
+
+SKIP=$(git config --get metaharness.skip 2>/dev/null || echo "false")
+if [ "$SKIP" = "true" ]; then exit 0; fi
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+VERSION=$(git describe --tags --always 2>/dev/null || echo "v0.1.0")
+REMOTE=${1:-origin}
+URL=${2:-}
+
+# Get the range of commits being pushed
+while read -r local_ref local_sha remote_ref remote_sha; do
+    if [ "$local_sha" = "0000000000000000000000000000000000000000" ]; then continue; fi
+
+    RANGE=""
+    if [ "$remote_sha" = "0000000000000000000000000000000000000000" ]; then
+        # New branch — review all commits not on remote
+        RANGE="$local_sha"
+    else
+        RANGE="${remote_sha}..${local_sha}"
+    fi
+
+    echo ""
+    echo "=== harness-traj-weaver (push) ==="
+    echo "  Version: $VERSION"
+    echo "  Range:   $RANGE"
+    echo ""
+
+    PROMPT="Run harness-traj-weaver push review.
+1. Observe: commits in range $RANGE (git log --oneline $RANGE). Prior data in .metaharness/$VERSION/.
+2. Diagnose: any quality regressions, missing docs, or search-set violations across these commits.
+3. Propose: concrete fixes for any issues found.
+4. Evaluate: full search-set validation, score 0-5.
+5. Generate: traj-viewer.html and human-loop.html into .metaharness/$VERSION/.
+6. Write: full eval results to .metaharness/$VERSION/feedback/push-$(date +%Y%m%d-%H%M%S).json."
+
+    claude -p "$PROMPT" 2>/dev/null || echo "  (claude not available — skipping full review)"
+    echo ""
+done
+
+exit 0

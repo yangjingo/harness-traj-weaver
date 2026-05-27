@@ -11,24 +11,31 @@
 
 ---
 
-## Quick Start
+## Install
 
 ```bash
-git clone https://github.com/yangjing/harness-traj-weaver.git
-cd harness-traj-weaver
+git clone https://github.com/yangjing/harness-traj-weaver.git ~/.claude/skills/harness-traj-weaver
+```
+
+The skill auto-loads on next session start. No further configuration needed.
+
+## Usage
+
+```bash
+cd ~/.claude/skills/harness-traj-weaver
 
 # Generate trajectory from any Claude Code session
-python skills/traj-display/scripts/generate_traj.py \
+python skills/traj/scripts/generate_traj.py \
   --input ~/.claude/projects/<project>/<session>.jsonl \
   --output traj.html
 
 # Generate survey for the current iteration
-python skills/human-loop/scripts/generate_survey.py \
+python skills/survey/scripts/generate_survey.py \
   --version v0.1.0 \
   --output survey.html
 
 # Dev server (with POST feedback endpoint)
-python server.py 8767
+python skills/survey/scripts/archive_feedback.py 8767
 ```
 
 ---
@@ -68,17 +75,12 @@ python server.py 8767
 
 ---
 
-## Eval — v0.1.0
+## Eval — v0.2.0
 
 ```
-evals/v0.1.0/
-  inputs/
-    session.jsonl
+.metaharness/v0.2.0/
   outputs/
-    meta-harness-66c583c5-traj.html      ← trajectory display
-    meta-harness-66c583c5-session.jsonl  ← archived session
-    meta-harness-66c583c5-survey.html    ← human-loop survey
-    meta-harness-66c583c5-feedback-*.json ← collected feedback
+    traj-79283bb1.html  ← current session trajectory
 ```
 
 ---

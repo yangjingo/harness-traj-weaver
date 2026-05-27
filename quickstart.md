@@ -31,7 +31,7 @@ No persistent memory. No fixed scaffold. Just the filesystem.
 The skill creates and reads from this structure:
 
 ```
-.cache/
+.metaharness/
   traces/       — execution traces from prior runs
   candidates/   — candidate harness outputs
   feedback/     — search-set evaluation results
@@ -43,4 +43,4 @@ Once installed, the skill auto-loads. The agent can be directed with:
 
 > Run the harness over the last 3 failed examples, diagnose them from their traces, and propose targeted edits.
 
-The agent reads `.cache/traces/`, diagnoses failures, edits candidate files, evaluates against the search set, and writes feedback back to disk.
+The agent reads `.metaharness/traces/`, diagnoses failures, edits candidate files, evaluates against the search set, and writes feedback back to disk.

@@ -1,102 +1,84 @@
 #!/usr/bin/env bash
-# === Meta-Harness pre-commit hook ===
-# Light mode (default):  Scores staged changes against Karpathy 4 principles, terminal only.
-# Full mode (opt-in):    Also generates traj.html + dashboard.html artifacts.
+# === harness-traj-weaver — pre-commit hook ===
+# Triggers the harness-traj-weaver skill on git commit.
+#
+# Light mode (default):  Fast terminal-only score using local metric script.
+# Full mode (opt-in):    Invokes Claude Code to run the full skill cycle.
+#                        Observe staged diff → Diagnose → Evaluate → block/allow.
 #
 # Install:  cp hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
 #
 # Config:
-#   git config metaharness.threshold 3.0    # minimum score (default: 2.5)
-#   git config metaharness.strict true       # block commits below threshold
-#   git config metaharness.full true         # generate HTML artifacts (traj + metric)
-#   git config metaharness.skip true         # skip hook entirely (one-shot)
+#   git config metaharness.full true     # invoke Claude Code + skill (full Observe→Diagnose→Evaluate)
+#   git config metaharness.threshold 3.0 # minimum score (default: 2.5)
+#   git config metaharness.strict true   # block commits below threshold
+#   git config metaharness.skip true     # skip hook entirely
 
 set -euo pipefail
 
-# --- Config ---
 THRESHOLD=$(git config --get metaharness.threshold 2>/dev/null || echo "2.5")
 STRICT=$(git config --get metaharness.strict 2>/dev/null || echo "false")
 FULL=$(git config --get metaharness.full 2>/dev/null || echo "false")
 SKIP=$(git config --get metaharness.skip 2>/dev/null || echo "false")
 
-if [ "$SKIP" = "true" ]; then
-    exit 0
-fi
+if [ "$SKIP" = "true" ]; then exit 0; fi
+if git diff --cached --quiet; then exit 0; fi
 
-# --- Only run when there are staged changes ---
-if git diff --cached --quiet; then
-    exit 0
-fi
-
-# --- Locate scripts ---
 REPO_ROOT=$(git rev-parse --show-toplevel)
-METRIC_SCRIPT="$REPO_ROOT/skills/metric/scripts/generate_dashboard.py"
-TRAJ_SCRIPT="$REPO_ROOT/skills/traj/scripts/generate_traj.py"
-
-# --- Find current session ID (lightweight: just the ID, no traj generation) ---
-SESSION_ID=""
-BASE="$HOME/.claude/projects"
-if [ -d "$BASE" ]; then
-    PROJECT_TAIL=$(basename "$REPO_ROOT")
-    for dir in "$BASE"/*/; do
-        if echo "$(basename "$dir")" | grep -qi "$PROJECT_TAIL"; then
-            SESSION_FILE=$(ls -t "$dir"/*.jsonl 2>/dev/null | head -1)
-            if [ -n "$SESSION_FILE" ]; then
-                SESSION_ID=$(basename "$SESSION_FILE" .jsonl)
-            fi
-            break
-        fi
-    done
-fi
-
-# --- Get commit message for goal context ---
 COMMIT_MSG_FILE=$(git rev-parse --git-dir)/COMMIT_EDITMSG
-GOAL=""
-if [ -f "$COMMIT_MSG_FILE" ]; then
-    GOAL=$(head -1 "$COMMIT_MSG_FILE" 2>/dev/null || echo "")
-fi
+GOAL=$(head -1 "$COMMIT_MSG_FILE" 2>/dev/null || echo "")
+VERSION=$(git describe --tags --always 2>/dev/null || echo "v0.1.0")
+SHORT_HASH=$(git diff --cached | sha256sum | cut -c1-8)
 
-# --- Run metric review (always) ---
-if [ ! -f "$METRIC_SCRIPT" ]; then
+# ── Full mode: invoke harness-traj-weaver skill via Claude Code ──
+if [ "$FULL" = "true" ]; then
+    echo ""
+    echo "=== harness-traj-weaver (full) ==="
+    echo "  Triggering skill on staged changes..."
+    echo ""
+
+    PROMPT="Run harness-traj-weaver commit review.
+1. Observe: staged diff (git diff --cached). Commit message: \"$GOAL\".
+2. Diagnose: check changes against search-set principles (filesystem as memory, trace-level reasoning, search-set feedback, self-improving).
+3. Evaluate: score 0-5. Threshold: $THRESHOLD.
+4. Write results to .metaharness/$VERSION/feedback/commit-$SHORT_HASH.json.
+Return ONLY a JSON line: {\"pass\":true/false,\"score\":N.M,\"verdict\":\"GO/NO-GO\"}."
+
+    RESULT=$(claude -p "$PROMPT" 2>/dev/null || echo '{"pass":true,"score":0,"verdict":"claude-failed"}')
+    echo "  Result: $RESULT"
+
+    SCORE=$(echo "$RESULT" | python -c "import sys,json; d=json.load(sys.stdin); print(d.get('score',0))" 2>/dev/null || echo "0")
+    PASS=$(echo "$RESULT" | python -c "import sys,json; d=json.load(sys.stdin); print(d.get('pass',True))" 2>/dev/null || echo "True")
+
+    if [ "$STRICT" = "true" ] && [ "$PASS" != "True" ]; then
+        echo "  BLOCKED: score $SCORE < threshold $THRESHOLD"
+        echo "  Fix issues or: git config metaharness.skip true && git commit ..."
+        exit 1
+    fi
+    echo ""
     exit 0
 fi
+
+# ── Light mode (default): fast local review ──
+METRIC_SCRIPT="$REPO_ROOT/skills/metric/scripts/generate_dashboard.py"
+
+if [ ! -f "$METRIC_SCRIPT" ]; then exit 0; fi
 
 METRIC_RESULT=$(python "$METRIC_SCRIPT" --diff HEAD --goal "$GOAL" --output /dev/null 2>&1 || echo "metric failed")
 METRIC_SCORE=$(echo "$METRIC_RESULT" | sed -n 's/.*Overall score:\s*\([0-9.]*\).*/\1/p' | head -1)
 METRIC_FILES=$(echo "$METRIC_RESULT" | sed -n 's/.*Files reviewed:\s*\([0-9]*\).*/\1/p' | head -1)
 METRIC_ISSUES=$(echo "$METRIC_RESULT" | sed -n 's/.*Issues found:\s*\([0-9]*\).*/\1/p' | head -1)
 
-# --- Terminal output: one clean line ---
 echo ""
-echo "=== Meta-Harness ==="
-echo "  Score: ${METRIC_SCORE:-?}/5  |  Files: ${METRIC_FILES:-?}  |  Issues: ${METRIC_ISSUES:-?}  |  Session: ${SESSION_ID:-?}"
+echo "=== harness-traj-weaver (light) ==="
+echo "  Score: ${METRIC_SCORE:-?}/5  |  Files: ${METRIC_FILES:-?}  |  Issues: ${METRIC_ISSUES:-?}"
+echo "  (git config metaharness.full true  to trigger the full skill cycle)"
 echo ""
 
-# --- Full mode: generate HTML artifacts ---
-if [ "$FULL" = "true" ]; then
-    SNAPSHOT_DIR=".cache/feedback"
-    mkdir -p "$SNAPSHOT_DIR"
-
-    # Generate traj.html
-    if [ -n "$SESSION_ID" ] && [ -f "$TRAJ_SCRIPT" ]; then
-        SESSION_FILE=$(ls "$BASE"/*"$SESSION_ID"*.jsonl 2>/dev/null | head -1)
-        if [ -n "$SESSION_FILE" ]; then
-            python "$TRAJ_SCRIPT" --input "$SESSION_FILE" --output "$SNAPSHOT_DIR/traj-$SESSION_ID.html" >/dev/null 2>&1 || true
-            echo "  traj:    $SNAPSHOT_DIR/traj-$SESSION_ID.html"
-        fi
-    fi
-
-    # Generate metric dashboard
-    python "$METRIC_SCRIPT" --diff HEAD --goal "$GOAL" --output "$SNAPSHOT_DIR/review-$(date +%Y%m%d-%H%M%S).html" >/dev/null 2>&1 || true
-    echo "  metric:  $SNAPSHOT_DIR/review-*.html"
-    echo ""
-fi
-
-# --- Block if below threshold ---
 if [ -n "$METRIC_SCORE" ] && [ "$STRICT" = "true" ]; then
     if awk "BEGIN {exit !($METRIC_SCORE < $THRESHOLD)}"; then
         echo "BLOCKED: Score $METRIC_SCORE < threshold $THRESHOLD"
-        echo "  Fix the issues, or: git config metaharness.skip true && git commit ..."
+        echo "  Fix issues or: git config metaharness.skip true && git commit ..."
         exit 1
     fi
 fi
