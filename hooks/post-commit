@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
 # === harness-traj-weaver — post-commit hook ===
-# Terminal Q&A after commit lands. One question at a time, no browser required.
-# Falls back to non-interactive mode inside Claude Code.
+# Terminal Q&A after commit lands.
+#
+# Quick (default):  3 questions + decision, ~30 seconds
+# Detailed (opt-in): 8 questions + decision, ~2 minutes
+#   git config metaharness.detailed true
 #
 # Install: cp hooks/post-commit .git/hooks/post-commit && chmod +x .git/hooks/post-commit
 
 set -euo pipefail
 
 SKIP=$(git config --get metaharness.skip 2>/dev/null || echo "false")
+DETAILED=$(git config --get metaharness.detailed 2>/dev/null || echo "false")
 if [ "$SKIP" = "true" ]; then exit 0; fi
 
 REPO_ROOT=$(git rev-parse --show-toplevel)
@@ -16,10 +20,10 @@ VERSION="v${VERSION:-0.1.0}"
 COMMIT_HASH=$(git rev-parse --short HEAD)
 OUTDIR="$REPO_ROOT/.metaharness/$VERSION/outputs"
 INPUTDIR="$REPO_ROOT/.metaharness/$VERSION/inputs"
-ARCHIVE_SCRIPT="$REPO_ROOT/skills/survey/scripts/archive_feedback.py"
 IN_CLAUDE="${CLAUDE_CODE_SESSION_ID:-}"
 STAGED_STAT=$(git diff --cached --stat 2>/dev/null | tail -1)
 GOAL=$(git log -1 --pretty=%s)
+TIMESTAMP=$(date -Iseconds)
 
 mkdir -p "$OUTDIR" "$INPUTDIR"
 
@@ -36,70 +40,92 @@ echo "========================================"
 echo "  harness-traj-weaver — Commit Review"
 echo "========================================"
 echo "  Version: $VERSION"
-echo "  Commit:  $COMMIT_HASH — $GOAL"
+echo "  Commit:  $COMMIT_HASH"
+echo "  Message: $GOAL"
 echo "  Changes: ${STAGED_STAT:-unknown}"
 echo ""
 
-# ── Interactive mode (real terminal) ──
+# ── Interactive mode ──
 if [ -z "$IN_CLAUDE" ] && [ -t 0 ]; then
 
-    echo "  Answer each question (1-5), then confirm GO/NO-GO."
-    echo ""
-
-    # Q1
-    read -p "  Q1. 变更量是否合理? [5=非常精简 1=过度修改]: " Q1
-    # Q2
-    read -p "  Q2. 每个变更是否可追溯到 commit 目标? [5=全部 1=大量漂移]: " Q2
-    # Q3
-    read -p "  Q3. 文档/注释是否同步更新? [5=完整 1=未更新]: " Q3
-    # Q4
-    read -p "  Q4. 是否会破坏现有流水线/hook? [5=无影响 1=会破坏]: " Q4
-    # Q5
-    read -p "  Q5. trace 是否完整可回溯? [5=完整 1=无法回溯]: " Q5
-
-    echo ""
-    # Open human-loop for visual reference (optional)
-    HUMAN_LOOP=$(ls -t "$OUTDIR"/human-loop-*.html 2>/dev/null | head -1)
-    if [ -n "$HUMAN_LOOP" ]; then
-        start "$HUMAN_LOOP" 2>/dev/null || open "$HUMAN_LOOP" 2>/dev/null || true
+    if [ "$DETAILED" = "true" ]; then
+        MODE="detailed (8 questions)"
+        echo "  [Detailed mode] Answer 1-5 for each question."
+        echo ""
+        read -p "  Q1. 变更量是否合理? [5=非常精简 1=过度修改]: " Q1
+        read -p "  Q2. 每个变更可追溯到目标? [5=全部 1=大量漂移]: " Q2
+        read -p "  Q3. 代码是否有不必要的抽象? [5=完全必要 1=过度设计]: " Q3
+        read -p "  Q4. 文档/注释是否同步更新? [5=完整 1=未更新]: " Q4
+        read -p "  Q5. 是否会破坏现有流水线? [5=无影响 1=会破坏]: " Q5
+        read -p "  Q6. trace 是否完整可回溯? [5=完整 1=无法回溯]: " Q6
+        read -p "  Q7. 版本演进方向是否正确? [5=清晰 1=偏离]: " Q7
+        read -p "  Q8. 还有什么需要补充? (回车跳过): " Q8
+    else
+        MODE="quick (3 questions)"
+        echo "  [Quick mode] Answer 1-5, or Enter to skip."
+        echo "  Tip: git config metaharness.detailed true  for detailed review"
+        echo ""
+        read -p "  Q1. 变更是否合理、可追溯? [5=完美 1=糟糕]: " Q1
+        read -p "  Q2. 有没有不必要的改动? [5=完全没有 1=大量冗余]: " Q2
+        read -p "  Q3. 还有什么需要补充? (回车跳过): " Q3
     fi
 
-    # Final decision
-    read -p "  Final decision — allow this commit? [g/n]: " DEC
+    echo ""
+    read -p "  Final — allow this commit? [y/n]: " DEC
 
-    # Archive feedback
+    # ── Save feedback JSON ──
     FEEDBACK_FILE="$OUTDIR/meta-harness-feedback-$(date +%Y-%m-%dT%H-%M-%S).json"
-    python -c "
+    if [ "$DETAILED" = "true" ]; then
+        python -c "
 import json
 json.dump({
-    'version': '$VERSION',
-    'commit': '$COMMIT_HASH',
-    'goal': '''$GOAL''',
-    'qs': {'q1': '$Q1', 'q2': '$Q2', 'q3': '$Q3', 'q4': '$Q4', 'q5': '$Q5'},
+    'version': '$VERSION', 'commit': '$COMMIT_HASH', 'goal': '''$GOAL''',
+    'mode': '$MODE',
+    'answers': [
+        {'q':'变更量是否合理','a':'${Q1:-}'},
+        {'q':'变更可追溯','a':'${Q2:-}'},
+        {'q':'无过度抽象','a':'${Q3:-}'},
+        {'q':'文档同步','a':'${Q4:-}'},
+        {'q':'不破坏流水线','a':'${Q5:-}'},
+        {'q':'trace可回溯','a':'${Q6:-}'},
+        {'q':'版本方向','a':'${Q7:-}'},
+        {'q':'补充','a':'${Q8:-}'}
+    ],
     'decision': '$DEC',
-    'timestamp': '$(date -Iseconds)'
+    'timestamp': '$TIMESTAMP'
 }, open('$FEEDBACK_FILE', 'w'), indent=2, ensure_ascii=False)
 " 2>/dev/null || true
+    else
+        python -c "
+import json
+json.dump({
+    'version': '$VERSION', 'commit': '$COMMIT_HASH', 'goal': '''$GOAL''',
+    'mode': '$MODE',
+    'answers': [
+        {'q':'变更合理可追溯','a':'${Q1:-}'},
+        {'q':'无冗余改动','a':'${Q2:-}'},
+        {'q':'补充','a':'${Q3:-}'}
+    ],
+    'decision': '$DEC',
+    'timestamp': '$TIMESTAMP'
+}, open('$FEEDBACK_FILE', 'w'), indent=2, ensure_ascii=False)
+" 2>/dev/null || true
+    fi
 
     echo ""
     echo "========================================"
-    if [ "$DEC" = "g" ]; then
+    if [ "$DEC" = "y" ]; then
         echo "  Decision: GO"
-        echo "  Feedback archived → $FEEDBACK_FILE"
-        echo ""
-        echo "  Next: run the harness to start next iteration"
     else
         echo "  Decision: NO-GO"
-        echo "  Feedback archived → $FEEDBACK_FILE"
-        echo ""
-        echo "  Next: review issues and re-commit"
     fi
+    echo "  Mode:     $MODE"
+    echo "  Feedback: $FEEDBACK_FILE"
     echo "========================================"
     echo ""
 
 else
-    # ── Non-interactive (Claude Code / CI) ──
-    echo "  (non-interactive — human-loop available for manual review)"
+    echo "  (non-interactive — feedback via human-loop.html)"
     echo ""
 fi
 
