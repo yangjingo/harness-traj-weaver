@@ -70,7 +70,11 @@ The skill generates the review, but the HUMAN gates the commit. The hook waits f
 
 ### Push Hook (`pre-push`)
 
-Same human-in-the-loop flow for `git push` — skill reviews, human decides.
+Same human-in-the-loop flow for `git push`.
+
+### Detection
+
+The hook auto-detects Claude Code sessions (`$CLAUDE_CODE_SESSION_ID`) and uses local scripts instead of recursive `claude -p`.
 
 ### Installation
 

@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
 # === harness-traj-weaver — pre-commit hook ===
 #
-# Flow:  git commit → hook reviews → human-loop opened → human decides → commit proceeds
-#
-# Works both inside and outside Claude Code (detects environment, no recursive claude -p).
+# Claude Code:     generates human-loop + traj, skips wait (CC is the reviewer)
+# Terminal:        generates human-loop, opens browser, waits for human GO/NO-GO
 #
 # Install: cp hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
 #
 # Config:
 #   git config metaharness.skip true     # skip hook entirely
-#   git config metaharness.timeout 300   # max wait for human decision (seconds)
+#   git config metaharness.timeout 300   # max wait for human decision (terminal only)
 
 set -euo pipefail
 
@@ -27,7 +26,6 @@ SHORT_HASH=$(git diff --cached | sha256sum | cut -c1-8)
 OUTDIR="$REPO_ROOT/.metaharness/$VERSION/outputs"
 FEEDBACK_FILE="$OUTDIR/decision-$SHORT_HASH.json"
 METRIC_SCRIPT="$REPO_ROOT/skills/metric/scripts/generate_dashboard.py"
-TRAJ_SCRIPT="$REPO_ROOT/skills/traj/scripts/generate_traj.py"
 SURVEY_SCRIPT="$REPO_ROOT/skills/survey/scripts/generate_survey.py"
 ARCHIVE_SCRIPT="$REPO_ROOT/skills/survey/scripts/archive_feedback.py"
 IN_CLAUDE="${CLAUDE_CODE_SESSION_ID:-}"
@@ -35,121 +33,49 @@ mkdir -p "$OUTDIR"
 
 echo ""
 echo "=== harness-traj-weaver ==="
-if [ -n "$IN_CLAUDE" ]; then
-    echo "  (detected Claude Code — using local scripts)"
-fi
-echo ""
 
-# ── Step 1: Start archive server ──
-SERVER_PID=""
+# ── Generate metric review ──
+if [ -f "$METRIC_SCRIPT" ]; then
+    METRIC_OUT=$(python "$METRIC_SCRIPT" --diff HEAD --goal "$GOAL" --output /dev/null 2>&1 || true)
+    SCORE=$(echo "$METRIC_OUT" | sed -n 's/.*Overall score:\s*\([0-9.]*\).*/\1/p' | head -1)
+    echo "  Metric: ${SCORE:-?}/5"
+fi
+
+# ── Generate human-loop from reference template ──
+HUMAN_LOOP="$OUTDIR/human-loop-$SHORT_HASH.html"
+if [ -f "$SURVEY_SCRIPT" ]; then
+    python "$SURVEY_SCRIPT" --type human-loop --version "$VERSION" --output "$HUMAN_LOOP" 2>/dev/null || true
+    if [ -f "$HUMAN_LOOP" ]; then
+        echo "  Human-loop: $HUMAN_LOOP"
+
+        # Inject staged diff summary
+        STAGED_DIFF=$(git diff --cached --stat 2>/dev/null | head -30)
+        python -c "
+html = open('$HUMAN_LOOP','r',encoding='utf-8').read()
+diff_block = '<div class=\"question ctx-block\"><h3>Staged Changes</h3><pre style=\"font-family:JetBrains Mono,monospace;font-size:13px;white-space:pre-wrap;max-height:240px;overflow-y:auto;\">' + '''$STAGED_DIFF''' + '</pre></div>'
+html = html.replace('<div class=\"question\">', diff_block + '<div class=\"question\">', 1)
+open('$HUMAN_LOOP','w',encoding='utf-8').write(html)
+" 2>/dev/null || true
+    fi
+fi
+
+# ── Claude Code: skip wait, commit proceeds ──
+if [ -n "$IN_CLAUDE" ]; then
+    echo "  (Claude Code — skipping human wait)"
+    echo ""
+    exit 0
+fi
+
+# ── Terminal: start server, open browser, wait for human ──
+echo "  Starting review server..."
 if [ -f "$ARCHIVE_SCRIPT" ]; then
     python "$ARCHIVE_SCRIPT" 8767 &
     SERVER_PID=$!
     sleep 1
 fi
 
-# ── Step 2: Generate review artifacts ──
-if [ -f "$METRIC_SCRIPT" ]; then
-    python "$METRIC_SCRIPT" --diff HEAD --goal "$GOAL" --output /dev/null 2>&1 || true
-fi
+start "$HUMAN_LOOP" 2>/dev/null || open "$HUMAN_LOOP" 2>/dev/null || true
 
-# Generate human-loop with staged diff summary
-cat > "$OUTDIR/human-loop-$SHORT_HASH.html" <<HTMLEOF
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Human-in-the-Loop — commit review</title>
-<style>
-  :root { --bg: #faf9f5; --card: #efe9de; --border: #e6dfd8; --text: #141413; --body: #3d3d3a; --muted: #6c6a64; --coral: #cc785c; --green: #5db872; --red: #c64545; --yellow: #d4a017; }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 32px; max-width: 800px; margin: 0 auto; }
-  h1 { font-family: 'Tiempos Headline', 'Cormorant Garamond', serif; font-size: 28px; font-weight: 400; letter-spacing: -0.3px; margin-bottom: 8px; }
-  .sub { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
-  .section { margin-bottom: 24px; }
-  .section h2 { font-family: 'Tiempos Headline', 'Cormorant Garamond', serif; font-size: 18px; font-weight: 400; padding-bottom: 6px; border-bottom: 1px solid var(--border); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-  .letter { font-size: 13px; font-weight: 500; color: var(--coral); background: rgba(204,120,92,0.1); padding: 2px 8px; border-radius: 4px; font-family: Inter, sans-serif; }
-  .metric-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
-  .metric { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; min-width: 100px; }
-  .metric .val { font-size: 22px; font-weight: 500; font-family: 'Tiempos Headline', 'Cormorant Garamond', serif; }
-  .metric .lab { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .diff-box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; font-family: 'JetBrains Mono', 'SF Mono', monospace; font-size: 13px; white-space: pre-wrap; max-height: 300px; overflow-y: auto; color: var(--body); }
-  .diff-add { color: var(--green); }
-  .diff-rem { color: var(--red); }
-  .diff-hunk { color: var(--muted); }
-  .verdict { padding: 12px 16px; border-radius: 12px; font-size: 14px; font-weight: 500; margin-bottom: 12px; }
-  .verdict.go { background: rgba(93,184,114,0.08); border: 1px solid rgba(93,184,114,0.25); color: var(--green); }
-  .btn-row { display: flex; gap: 8px; margin-top: 16px; }
-  .btn { padding: 12px 28px; font-size: 15px; font-weight: 500; border-radius: 8px; cursor: pointer; border: none; font-family: Inter, sans-serif; }
-  .btn-go { background: var(--green); color: #fff; }
-  .btn-nogo { background: var(--red); color: #fff; }
-  .btn:hover { opacity: 0.85; }
-  #status { margin-top: 12px; font-size: 14px; color: var(--muted); }
-</style>
-</head>
-<body>
-<h1>Commit Review</h1>
-<p class="sub"><strong>Message:</strong> $GOAL &mdash; <strong>Version:</strong> $VERSION &mdash; <strong>Hash:</strong> $SHORT_HASH</p>
-
-<div class="section">
-  <h2><span class="letter">A</span> Staged Changes</h2>
-  <div class="diff-box">$(git diff --cached --stat | head -30)</div>
-</div>
-
-<div class="section">
-  <h2><span class="letter">B</span> Files Changed</h2>
-  <div class="diff-box">$(git diff --cached --name-only)</div>
-</div>
-
-<div class="section">
-  <h2><span class="letter">C</span> Decision</h2>
-  <div class="verdict go" id="verdict-go" style="display:none">GO — commit will proceed</div>
-  <div class="verdict" style="background:rgba(198,69,69,0.08);border:1px solid rgba(198,69,69,0.25);color:var(--red);display:none" id="verdict-nogo">NO-GO — commit will be blocked</div>
-  <p style="font-size:14px;color:var(--body);margin-bottom:12px;">Review the changes above. Click GO to allow the commit, or NO-GO to block it.</p>
-  <div class="btn-row">
-    <button class="btn btn-go" onclick="decide('go')">GO — Allow Commit</button>
-    <button class="btn btn-nogo" onclick="decide('nogo')">NO-GO — Block Commit</button>
-  </div>
-  <div id="status"></div>
-</div>
-
-<script>
-async function decide(d) {
-  document.querySelector('#status').textContent = 'Submitting...';
-  try {
-    await fetch('http://127.0.0.1:8767/submit-feedback', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({decision: d, short_hash: '$SHORT_HASH', timestamp: new Date().toISOString()})
-    });
-    document.querySelector('#verdict-' + d).style.display = 'block';
-    document.querySelector('.btn-row').style.display = 'none';
-    document.querySelector('#status').textContent = d === 'go' ? 'Decision submitted: GO. You may close this tab.' : 'Decision submitted: NO-GO. Commit blocked.';
-  } catch(e) {
-    document.querySelector('#status').textContent = 'Error: could not reach server. Please ensure archive_feedback.py is running on port 8767.';
-  }
-}
-</script>
-</body>
-</html>
-HTMLEOF
-
-echo "  human-loop: $OUTDIR/human-loop-$SHORT_HASH.html"
-
-# Generate traj if session available
-if [ -n "$IN_CLAUDE" ] && [ -f "$TRAJ_SCRIPT" ]; then
-    SESSION_FILE=$(ls -t "$HOME/.claude/projects"/*/current.jsonl 2>/dev/null | head -1)
-    if [ -n "${SESSION_FILE:-}" ] && [ -f "$SESSION_FILE" ]; then
-        python "$TRAJ_SCRIPT" --input "$SESSION_FILE" --output "$OUTDIR/traj-$SHORT_HASH.html" 2>/dev/null || true
-        echo "  traj: $OUTDIR/traj-$SHORT_HASH.html"
-    fi
-fi
-
-# ── Step 3: Open in browser ──
-start "$OUTDIR/human-loop-$SHORT_HASH.html" 2>/dev/null || open "$OUTDIR/human-loop-$SHORT_HASH.html" 2>/dev/null || true
-
-# ── Step 4: Wait for human decision ──
 echo ""
 echo "  Waiting for your decision (timeout: ${TIMEOUT}s)..."
 echo "  Review the opened page and click GO or NO-GO."
@@ -160,28 +86,20 @@ ELAPSED=0
 while [ $ELAPSED -lt $TIMEOUT ]; do
     if [ -f "$FEEDBACK_FILE" ]; then
         DECISION=$(python -c "import json;d=json.load(open('$FEEDBACK_FILE'));print(d.get('decision',''))" 2>/dev/null || echo "")
-        if [ -n "$DECISION" ]; then
-            break
-        fi
+        if [ -n "$DECISION" ]; then break; fi
     fi
     sleep 2
     ELAPSED=$((ELAPSED + 2))
 done
 
-# ── Step 5: Cleanup ──
 if [ -n "${SERVER_PID:-}" ]; then kill "$SERVER_PID" 2>/dev/null || true; fi
 
-# ── Step 6: Gate ──
 if [ "$DECISION" = "go" ]; then
     echo "  GO — commit proceeding"
     echo ""
     exit 0
-elif [ "$DECISION" = "nogo" ]; then
-    echo "  NO-GO — commit blocked"
-    echo ""
-    exit 1
 else
-    echo "  Timed out — commit blocked"
+    echo "  ${DECISION:-timed out} — commit blocked"
     echo ""
     exit 1
 fi
