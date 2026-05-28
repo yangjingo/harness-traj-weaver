@@ -66,7 +66,7 @@ hook fires → skill triggered → Observe → Diagnose → Propose → Evaluate
     └── Human clicks "NO-GO" → commit blocked
 ```
 
-The skill generates the review, but the HUMAN gates the commit. The hook waits for a decision via the human-loop feedback endpoint before allowing the commit to land.
+The skill generates the review, but the HUMAN gates the commit. Each commit auto-archives the current session via `$CLAUDE_CODE_SESSION_ID` into `.metaharness/v{version}/inputs/session-{id}.jsonl`. Version is detected from the latest entry in `changelog.md`.
 
 ### Push Hook (`pre-push`)
 

@@ -12,13 +12,25 @@ SKIP=$(git config --get metaharness.skip 2>/dev/null || echo "false")
 if [ "$SKIP" = "true" ]; then exit 0; fi
 
 REPO_ROOT=$(git rev-parse --show-toplevel)
-VERSION=$(git describe --tags --always 2>/dev/null || echo "v0.1.0")
+VERSION=$(grep -oP '## \[\K[0-9.]+(?=\])' "$REPO_ROOT/changelog.md" 2>/dev/null | head -1 || echo "0.1.0")
+VERSION="v${VERSION:-0.1.0}"
 COMMIT_HASH=$(git rev-parse --short HEAD)
 OUTDIR="$REPO_ROOT/.metaharness/$VERSION/outputs"
 ARCHIVE_SCRIPT="$REPO_ROOT/skills/survey/scripts/archive_feedback.py"
 
 # Find the most recent human-loop
 HUMAN_LOOP=$(ls -t "$OUTDIR"/human-loop-*.html 2>/dev/null | head -1)
+
+# ── Archive current session ──
+SESSION_ID="${CLAUDE_CODE_SESSION_ID:-}"
+INPUTDIR="$REPO_ROOT/.metaharness/$VERSION/inputs"
+mkdir -p "$INPUTDIR"
+if [ -n "$SESSION_ID" ]; then
+    SESSION_FILE=$(ls "$HOME/.claude/projects"/*/"$SESSION_ID".jsonl 2>/dev/null | head -1)
+    if [ -n "${SESSION_FILE:-}" ] && [ -f "$SESSION_FILE" ] && [ ! -f "$INPUTDIR/session-$SESSION_ID.jsonl" ]; then
+        cp "$SESSION_FILE" "$INPUTDIR/session-$SESSION_ID.jsonl" 2>/dev/null || true
+    fi
+fi
 
 echo ""
 echo "=== harness-traj-weaver (post-commit) ==="
