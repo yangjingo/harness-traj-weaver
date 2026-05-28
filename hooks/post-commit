@@ -1,17 +1,13 @@
 #!/usr/bin/env bash
 # === harness-traj-weaver — post-commit hook ===
-# Concrete multiple-choice review after commit lands.
-#
-# Quick (default):  3 questions + decision
-# Detailed (opt-in): 6 questions + decision
-#   git config metaharness.detailed true
+# Writes a plan trigger after commit lands. The harness skill picks it up
+# on next invocation to generate the next iteration plan.
 #
 # Install: cp hooks/post-commit .git/hooks/post-commit && chmod +x .git/hooks/post-commit
 
 set -euo pipefail
 
 SKIP=$(git config --get metaharness.skip 2>/dev/null || echo "false")
-DETAILED=$(git config --get metaharness.detailed 2>/dev/null || echo "false")
 if [ "$SKIP" = "true" ]; then exit 0; fi
 
 REPO_ROOT=$(git rev-parse --show-toplevel)
@@ -21,8 +17,9 @@ COMMIT_HASH=$(git rev-parse --short HEAD)
 OUTDIR="$REPO_ROOT/.metaharness/$VERSION/outputs"
 INPUTDIR="$REPO_ROOT/.metaharness/$VERSION/inputs"
 IN_CLAUDE="${CLAUDE_CODE_SESSION_ID:-}"
-STAGED_STAT=$(git diff --cached --stat 2>/dev/null | tail -1)
 GOAL=$(git log -1 --pretty=%s)
+CHANGED=$(git diff --cached --name-only 2>/dev/null)
+CHANGED_COUNT=$(echo "$CHANGED" | wc -l)
 TIMESTAMP=$(date -Iseconds)
 
 mkdir -p "$OUTDIR" "$INPUTDIR"
@@ -35,104 +32,40 @@ if [ -n "$IN_CLAUDE" ]; then
     fi
 fi
 
-# ── Question banks ──
-ask() { local var=$1; shift; echo ""; echo "  $*"; read -p "  Choice [a/b/c/d]: " $var; }
+# ── Write commit artifact ──
+cat > "$OUTDIR/commit-$COMMIT_HASH.json" <<EOF
+{
+  "hash": "$COMMIT_HASH",
+  "goal": "$GOAL",
+  "changed_count": $CHANGED_COUNT,
+  "changed_files": $(echo "$CHANGED" | python -c "import sys; print(json.dumps(sys.stdin.read().strip().split('\n')))" 2>/dev/null || echo "[]"),
+  "timestamp": "$TIMESTAMP"
+}
+EOF
+
+# ── Write plan trigger for next cycle ──
+PLAN_TRIGGER="$REPO_ROOT/.metaharness/plan-trigger.json"
+cat > "$PLAN_TRIGGER" <<EOF
+{
+  "from_version": "$VERSION",
+  "last_commit": "$COMMIT_HASH",
+  "last_goal": "$GOAL",
+  "timestamp": "$TIMESTAMP",
+  "action": "Run harness-traj-weaver plan to generate the next iteration proposal."
+}
+EOF
 
 echo ""
 echo "========================================"
-echo "  harness-traj-weaver — Commit Review"
+echo "  harness-traj-weaver — $VERSION"
 echo "========================================"
-echo "  Version: $VERSION  |  Commit: $COMMIT_HASH"
-echo "  $GOAL"
-echo "  Changes: ${STAGED_STAT:-unknown}"
+echo "  Commit:  $COMMIT_HASH — $GOAL"
+echo "  Files:   $CHANGED_COUNT changed"
+echo "  Archive: $OUTDIR/commit-$COMMIT_HASH.json"
 echo ""
-
-# ── Interactive mode ──
-if [ -z "$IN_CLAUDE" ] && [ -t 0 ]; then
-
-    if [ "$DETAILED" = "true" ]; then
-        MODE="detailed"
-        echo "  [Detailed review — 6 questions]"
-        ask Q1 "变更范围?" \
-            "  a) 单个模块内，影响范围清晰" \
-            "  b) 跨 2-3 个模块，均与目标相关" \
-            "  c) 改动分散，存在与目标无关的修改" \
-            "  d) 大面积改动，难以评估影响范围"
-        ask Q2 "是否有破坏性变更?" \
-            "  a) 纯增量，不影响现有行为" \
-            "  b) 修改了内部实现，对外接口不变" \
-            "  c) 改了对外接口，但有向后兼容" \
-            "  d) 破坏性变更，需要手动迁移"
-        ask Q3 "文档同步情况?" \
-            "  a) README/CHANGELOG/skill.md 均已同步" \
-            "  b) CHANGELOG 已更新，其余待补充" \
-            "  c) 仅代码变更，文档未动" \
-            "  d) 不需要文档更新"
-        ask Q4 "对流水线的影响?" \
-            "  a) 无影响，hook/pre-commit 不受影响" \
-            "  b) 改了 hook 逻辑，已同步安装到 .git/hooks" \
-            "  c) 修改了 skill 脚本，需要重新安装" \
-            "  d) 不确定，需要验证"
-        ask Q5 "trace 归档情况?" \
-            "  a) session 已自动归档，traj 已生成" \
-            "  b) session 已归档，traj 未生成" \
-            "  c) 均未归档，需要手动补充" \
-            "  d) 不适用于本次变更"
-        ask Q6 "版本演进方向?" \
-            "  a) 符合 ROADMAP，向前推进" \
-            "  b) 偏离 ROADMAP，但有充分理由" \
-            "  c) 与 ROADMAP 无关的临时修复" \
-            "  d) 回退或重构之前的决策"
-        QS='[{"q":"变更范围","a":"'"$Q1"'"},{"q":"破坏性变更","a":"'"$Q2"'"},{"q":"文档同步","a":"'"$Q3"'"},{"q":"流水线影响","a":"'"$Q4"'"},{"q":"trace归档","a":"'"$Q5"'"},{"q":"版本方向","a":"'"$Q6"'"}]'
-    else
-        MODE="quick"
-        echo "  [Quick review — 3 questions]"
-        ask Q1 "变更范围?" \
-            "  a) 单个模块，影响清晰" \
-            "  b) 跨模块但相关" \
-            "  c) 分散，存在无关改动" \
-            "  d) 大面积，难以评估"
-        ask Q2 "是否有破坏性变更?" \
-            "  a) 纯增量，不影响现有行为" \
-            "  b) 内部重构，接口不变" \
-            "  c) 有破坏性，但已兼容" \
-            "  d) 破坏性，需要迁移"
-        ask Q3 "文档/hook/trace 是否同步?" \
-            "  a) 全部同步" \
-            "  b) 大部分已同步" \
-            "  c) 部分遗漏" \
-            "  d) 未同步"
-        QS='[{"q":"变更范围","a":"'"$Q1"'"},{"q":"破坏性变更","a":"'"$Q2"'"},{"q":"同步情况","a":"'"$Q3"'"}]'
-    fi
-
-    echo ""
-    read -p "  Allow this commit? [y/n]: " DEC
-
-    # ── Save feedback JSON ──
-    FEEDBACK_FILE="$OUTDIR/meta-harness-feedback-$(date +%Y-%m-%dT%H-%M-%S).json"
-    python -c "
-import json
-json.dump({
-    'version': '$VERSION',
-    'commit': '$COMMIT_HASH',
-    'goal': '''$GOAL''',
-    'mode': '$MODE',
-    'answers': $QS,
-    'decision': '$DEC',
-    'timestamp': '$TIMESTAMP'
-}, open('$FEEDBACK_FILE', 'w'), indent=2, ensure_ascii=False)
-" 2>/dev/null || true
-
-    echo ""
-    echo "========================================"
-    if [ "$DEC" = "y" ]; then echo "  Decision: GO"; else echo "  Decision: NO-GO"; fi
-    echo "  Mode: $MODE  |  Feedback: $FEEDBACK_FILE"
-    echo "========================================"
-    echo ""
-
-else
-    echo "  (non-interactive)"
-    echo ""
-fi
+echo "  Plan trigger written → .metaharness/plan-trigger.json"
+echo "  Next: harness-traj-weaver plan"
+echo "========================================"
+echo ""
 
 exit 0
