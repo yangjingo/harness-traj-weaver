@@ -1,7 +1,7 @@
 {
   "from_version": "v0.2.0",
-  "last_commit": "21dea34",
-  "last_goal": "chore: final sync",
-  "timestamp": "2026-05-28T16:14:13+08:00",
+  "last_commit": "522ce34",
+  "last_goal": "fix: pre-push hook detect Claude Code, skip recursive claude -p",
+  "timestamp": "2026-05-28T23:02:06+08:00",
   "action": "Run harness-traj-weaver plan to generate the next iteration proposal."
 }

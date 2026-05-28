@@ -1,0 +1,7 @@
+{
+  "hash": "522ce34",
+  "goal": "fix: pre-push hook detect Claude Code, skip recursive claude -p",
+  "changed_count": 1,
+  "changed_files": [],
+  "timestamp": "2026-05-28T23:02:06+08:00"
+}
