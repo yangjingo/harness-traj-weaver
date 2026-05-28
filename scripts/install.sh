@@ -55,11 +55,13 @@ if [ ! -d "$TARGET/.git" ]; then
 fi
 
 cp "$SKILL_DIR/hooks/pre-commit" "$TARGET/.git/hooks/pre-commit"
+cp "$SKILL_DIR/hooks/post-commit" "$TARGET/.git/hooks/post-commit"
 cp "$SKILL_DIR/hooks/pre-push" "$TARGET/.git/hooks/pre-push"
-chmod +x "$TARGET/.git/hooks/pre-commit" "$TARGET/.git/hooks/pre-push"
+chmod +x "$TARGET/.git/hooks/pre-commit" "$TARGET/.git/hooks/post-commit" "$TARGET/.git/hooks/pre-push"
 
 echo "  Hooks installed:"
 echo "    $TARGET/.git/hooks/pre-commit"
+echo "    $TARGET/.git/hooks/post-commit"
 echo "    $TARGET/.git/hooks/pre-push"
 echo ""
 echo "Done. The skill will auto-load on next session start."

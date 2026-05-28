@@ -24,29 +24,13 @@ description: Meta-Harness skill — minimal outer loop that gives the proposer u
 
 ```
 .metaharness/
-  traces/       — execution traces from prior runs
-  candidates/   — candidate harness outputs
-  feedback/     — search-set evaluation results
+  v{version}/
+    inputs/              — archived session JSONL (via $CLAUDE_CODE_SESSION_ID)
+    outputs/             — generated artifacts (commit-*.json, human-loop-*.html, traj-*.html, feedback-*.json)
+  plan-trigger.json      — written by post-commit to trigger the next iteration cycle
 ```
 
-The outer loop stays minimal. No scaffolding, no memory database — just the filesystem.
-
-## Eval
-
-All evaluation artifacts follow versioned layout under `.metaharness/`:
-
-```
-.metaharness/
-  v0.1.0/
-    outputs/
-      traj.html       — baseline trajectory
-      survey.html     — baseline survey
-  v0.2.0/
-    outputs/
-      traj-79283bb1.html  — session trajectory
-```
-
-The human-loop survey covers both skill-level UI/UX and Meta-Harness paradigm assessment. It is archived under `.metaharness/v{version}/outputs/` as a key artifact driving the next iteration.
+The outer loop stays minimal. No scaffolding, no memory database — just the filesystem. Each version directory accumulates all harness artifacts for that release. The human-loop survey covers both skill-level UI/UX and Meta-Harness paradigm assessment.
 
 ## Hook Integration
 
@@ -87,11 +71,12 @@ bash ~/.claude/skills/harness-traj-weaver/scripts/install.sh
 
 `install.sh` does two things:
 1. Registers the skill in `~/.claude/settings.json`
-2. Installs `hooks/pre-commit` and `hooks/pre-push` into `.git/hooks/` of the current repo
+2. Installs `hooks/pre-commit`, `hooks/post-commit`, and `hooks/pre-push` into `.git/hooks/` of the current repo
 
 For manual hook installation in an existing repo:
 
 ```bash
 cp ~/.claude/skills/harness-traj-weaver/hooks/pre-commit .git/hooks/pre-commit
+cp ~/.claude/skills/harness-traj-weaver/hooks/post-commit .git/hooks/post-commit
 cp ~/.claude/skills/harness-traj-weaver/hooks/pre-push .git/hooks/pre-push
 ```

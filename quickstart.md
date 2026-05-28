@@ -32,9 +32,10 @@ The skill creates and reads from this structure:
 
 ```
 .metaharness/
-  traces/       — execution traces from prior runs
-  candidates/   — candidate harness outputs
-  feedback/     — search-set evaluation results
+  v{version}/
+    inputs/       — archived session JSONL files
+    outputs/      — generated artifacts
+  plan-trigger.json — trigger for next iteration cycle
 ```
 
 ## Usage in Conversation
@@ -43,4 +44,4 @@ Once installed, the skill auto-loads. The agent can be directed with:
 
 > Run the harness over the last 3 failed examples, diagnose them from their traces, and propose targeted edits.
 
-The agent reads `.metaharness/traces/`, diagnoses failures, edits candidate files, evaluates against the search set, and writes feedback back to disk.
+The agent reads `.metaharness/`, diagnoses failures, edits candidate files, evaluates against the search set, and writes feedback back to disk.

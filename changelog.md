@@ -8,6 +8,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added (v0.2.x iterations)
+
+- **Hook split**: `pre-commit` generates artifacts; `post-commit` monitors, archives sessions, writes plan trigger
+- **Human-in-the-loop gating**: GO/NO-GO decision form injected into human-loop HTML; terminal Q&A fallback
+- **Q&A modes**: dual-mode (quick 3-question / detailed 8-question) with concrete multiple-choice options
+- **Session archiving**: auto-archive via `$CLAUDE_CODE_SESSION_ID` to `.metaharness/v{version}/inputs/`
+- **Plan trigger**: post-commit writes `.metaharness/plan-trigger.json` to drive next iteration cycle
+- **Version detection unified**: hooks and `archive_feedback.py` read version from `changelog.md`
+
+### Changed (v0.2.x iterations)
+
+- Pre-commit: removed `claude -p` recursion, uses local Python scripts directly
+- Pre-push: version detection from changelog.md, clarified description
+- Post-commit: replaced browser-based review with terminal Q&A + plan trigger
+
+### Fixed (v0.3.0)
+
+- `scripts/install.sh`: post-commit hook was not copied to `.git/hooks/` during install
+- `skill.md`: Filesystem Layout showed flat `.metaharness/traces/` instead of versioned `.metaharness/v{version}/`
+- `quickstart.md`: stale flat layout synced to match skill.md
+
+### Added (v0.3.0)
+
+- `.gitignore`: excludes `.metaharness/` from version control
+- `LICENSE`: MIT license file
+
+---
+
 ## [0.2.0] — 2026-05-27
 
 ### Changed
@@ -36,7 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **skills/metric** — Evaluation metrics dashboard HTML generator
 - **skills/theme** — Theme CSS tokens and visual language
 - **skills/survey** — Feedback survey generator (QA + human-loop)
-- `evals/v0.1.0/` — versioned eval structure with demo session
+- `.metaharness/v0.1.0/` — versioned eval structure with demo session (originally `evals/v0.1.0/`)
 - `skill.md` with principles, workflow, and filesystem layout
 - Core Meta-Harness principles documentation
 - Architecture diagram + demo video
