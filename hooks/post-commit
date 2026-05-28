@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # === harness-traj-weaver — post-commit hook ===
-# Monitors for human-loop feedback after commit lands.
-# Starts server, opens browser, waits for GO/NO-GO.
-# On GO: triggers next harness iteration.
+# Terminal Q&A after commit lands. One question at a time, no browser required.
+# Falls back to non-interactive mode inside Claude Code.
 #
 # Install: cp hooks/post-commit .git/hooks/post-commit && chmod +x .git/hooks/post-commit
 
@@ -16,93 +15,92 @@ VERSION=$(grep -oP '## \[\K[0-9.]+(?=\])' "$REPO_ROOT/changelog.md" 2>/dev/null 
 VERSION="v${VERSION:-0.1.0}"
 COMMIT_HASH=$(git rev-parse --short HEAD)
 OUTDIR="$REPO_ROOT/.metaharness/$VERSION/outputs"
-ARCHIVE_SCRIPT="$REPO_ROOT/skills/survey/scripts/archive_feedback.py"
-
-# Find the most recent human-loop
-HUMAN_LOOP=$(ls -t "$OUTDIR"/human-loop-*.html 2>/dev/null | head -1)
-
-# ── Archive current session ──
-SESSION_ID="${CLAUDE_CODE_SESSION_ID:-}"
 INPUTDIR="$REPO_ROOT/.metaharness/$VERSION/inputs"
-mkdir -p "$INPUTDIR"
-if [ -n "$SESSION_ID" ]; then
-    SESSION_FILE=$(ls "$HOME/.claude/projects"/*/"$SESSION_ID".jsonl 2>/dev/null | head -1)
-    if [ -n "${SESSION_FILE:-}" ] && [ -f "$SESSION_FILE" ] && [ ! -f "$INPUTDIR/session-$SESSION_ID.jsonl" ]; then
-        cp "$SESSION_FILE" "$INPUTDIR/session-$SESSION_ID.jsonl" 2>/dev/null || true
+ARCHIVE_SCRIPT="$REPO_ROOT/skills/survey/scripts/archive_feedback.py"
+IN_CLAUDE="${CLAUDE_CODE_SESSION_ID:-}"
+STAGED_STAT=$(git diff --cached --stat 2>/dev/null | tail -1)
+GOAL=$(git log -1 --pretty=%s)
+
+mkdir -p "$OUTDIR" "$INPUTDIR"
+
+# ── Archive session ──
+if [ -n "$IN_CLAUDE" ]; then
+    SESSION_FILE=$(ls "$HOME/.claude/projects"/*/"$IN_CLAUDE".jsonl 2>/dev/null | head -1)
+    if [ -n "${SESSION_FILE:-}" ] && [ -f "$SESSION_FILE" ] && [ ! -f "$INPUTDIR/session-$IN_CLAUDE.jsonl" ]; then
+        cp "$SESSION_FILE" "$INPUTDIR/session-$IN_CLAUDE.jsonl" 2>/dev/null || true
     fi
 fi
 
 echo ""
-echo "=== harness-traj-weaver (post-commit) ==="
-echo "  Commit: $COMMIT_HASH"
-
-if [ -z "$HUMAN_LOOP" ] || [ ! -f "$HUMAN_LOOP" ]; then
-    echo "  No human-loop found — skipping"
-    echo ""
-    exit 0
-fi
-
-# ── Start review server ──
-SERVER_PID=""
-if [ -f "$ARCHIVE_SCRIPT" ]; then
-    python "$ARCHIVE_SCRIPT" 8767 >/dev/null 2>&1 &
-    SERVER_PID=$!
-    sleep 1
-    echo "  Server: http://127.0.0.1:8767"
-fi
-
-# ── Open human-loop ──
-start "$HUMAN_LOOP" 2>/dev/null || open "$HUMAN_LOOP" 2>/dev/null || true
-echo "  Opened: $HUMAN_LOOP"
-
-# ── Monitor for decision ──
-TIMEOUT=300
-echo "  Monitoring for decision (timeout: ${TIMEOUT}s)..."
-echo "  Complete the survey in browser, then return here."
+echo "========================================"
+echo "  harness-traj-weaver — Commit Review"
+echo "========================================"
+echo "  Version: $VERSION"
+echo "  Commit:  $COMMIT_HASH — $GOAL"
+echo "  Changes: ${STAGED_STAT:-unknown}"
 echo ""
 
-DECISION=""
-ELAPSED=0
-while [ $ELAPSED -lt $TIMEOUT ]; do
-    # Check for any new feedback JSON
-    LATEST=$(ls -t "$OUTDIR"/meta-harness-feedback-*.json 2>/dev/null | head -1)
-    if [ -n "$LATEST" ] && [ -f "$LATEST" ]; then
-        DECISION=$(python -c "import json;d=json.load(open('$LATEST'));print(d.get('decision',''))" 2>/dev/null || echo "")
-        if [ -n "$DECISION" ]; then
-            break
-        fi
-    fi
-    sleep 3
-    ELAPSED=$((ELAPSED + 3))
-    # Show progress every 30s
-    if [ $((ELAPSED % 30)) -eq 0 ]; then
-        echo "  ... waiting ($ELAPSED s) ..."
-    fi
-done
+# ── Interactive mode (real terminal) ──
+if [ -z "$IN_CLAUDE" ] && [ -t 0 ]; then
 
-# ── Cleanup ──
-if [ -n "${SERVER_PID:-}" ]; then kill "$SERVER_PID" 2>/dev/null || true; fi
+    echo "  Answer each question (1-5), then confirm GO/NO-GO."
+    echo ""
 
-# ── Act on decision ──
-echo ""
-echo "  ========================================"
-if [ "$DECISION" = "go" ]; then
-    echo "  Decision: GO"
+    # Q1
+    read -p "  Q1. 变更量是否合理? [5=非常精简 1=过度修改]: " Q1
+    # Q2
+    read -p "  Q2. 每个变更是否可追溯到 commit 目标? [5=全部 1=大量漂移]: " Q2
+    # Q3
+    read -p "  Q3. 文档/注释是否同步更新? [5=完整 1=未更新]: " Q3
+    # Q4
+    read -p "  Q4. 是否会破坏现有流水线/hook? [5=无影响 1=会破坏]: " Q4
+    # Q5
+    read -p "  Q5. trace 是否完整可回溯? [5=完整 1=无法回溯]: " Q5
+
     echo ""
-    echo "  Commit landed. Feedback archived → .metaharness/$VERSION/outputs/"
+    # Open human-loop for visual reference (optional)
+    HUMAN_LOOP=$(ls -t "$OUTDIR"/human-loop-*.html 2>/dev/null | head -1)
+    if [ -n "$HUMAN_LOOP" ]; then
+        start "$HUMAN_LOOP" 2>/dev/null || open "$HUMAN_LOOP" 2>/dev/null || true
+    fi
+
+    # Final decision
+    read -p "  Final decision — allow this commit? [g/n]: " DEC
+
+    # Archive feedback
+    FEEDBACK_FILE="$OUTDIR/meta-harness-feedback-$(date +%Y-%m-%dT%H-%M-%S).json"
+    python -c "
+import json
+json.dump({
+    'version': '$VERSION',
+    'commit': '$COMMIT_HASH',
+    'goal': '''$GOAL''',
+    'qs': {'q1': '$Q1', 'q2': '$Q2', 'q3': '$Q3', 'q4': '$Q4', 'q5': '$Q5'},
+    'decision': '$DEC',
+    'timestamp': '$(date -Iseconds)'
+}, open('$FEEDBACK_FILE', 'w'), indent=2, ensure_ascii=False)
+" 2>/dev/null || true
+
     echo ""
-    echo "  Next step:"
-    echo "    Run the harness again to start the next iteration."
-    echo "    Or: git push to trigger the full push review cycle."
-elif [ "$DECISION" = "nogo" ]; then
-    echo "  Decision: NO-GO"
+    echo "========================================"
+    if [ "$DEC" = "g" ]; then
+        echo "  Decision: GO"
+        echo "  Feedback archived → $FEEDBACK_FILE"
+        echo ""
+        echo "  Next: run the harness to start next iteration"
+    else
+        echo "  Decision: NO-GO"
+        echo "  Feedback archived → $FEEDBACK_FILE"
+        echo ""
+        echo "  Next: review issues and re-commit"
+    fi
+    echo "========================================"
     echo ""
-    echo "  Commit blocked. Review the feedback above."
-    echo "  Fix issues, then commit again."
+
 else
-    echo "  Timed out — no decision received."
-    echo "  Review the human-loop at your convenience."
+    # ── Non-interactive (Claude Code / CI) ──
+    echo "  (non-interactive — human-loop available for manual review)"
+    echo ""
 fi
-echo "  ========================================"
-echo ""
+
 exit 0
