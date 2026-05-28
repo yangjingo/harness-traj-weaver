@@ -57,36 +57,52 @@ echo "  Opened: $HUMAN_LOOP"
 
 # ── Monitor for decision ──
 TIMEOUT=300
-FEEDBACK_FILE="$OUTDIR/decision-"*.json
 echo "  Monitoring for decision (timeout: ${TIMEOUT}s)..."
+echo "  Complete the survey in browser, then return here."
+echo ""
 
 DECISION=""
 ELAPSED=0
 while [ $ELAPSED -lt $TIMEOUT ]; do
+    # Check for any new feedback JSON
     LATEST=$(ls -t "$OUTDIR"/meta-harness-feedback-*.json 2>/dev/null | head -1)
     if [ -n "$LATEST" ] && [ -f "$LATEST" ]; then
         DECISION=$(python -c "import json;d=json.load(open('$LATEST'));print(d.get('decision',''))" 2>/dev/null || echo "")
         if [ -n "$DECISION" ]; then
-            echo "  Decision: $DECISION"
             break
         fi
     fi
     sleep 3
     ELAPSED=$((ELAPSED + 3))
+    # Show progress every 30s
+    if [ $((ELAPSED % 30)) -eq 0 ]; then
+        echo "  ... waiting ($ELAPSED s) ..."
+    fi
 done
 
 # ── Cleanup ──
 if [ -n "${SERVER_PID:-}" ]; then kill "$SERVER_PID" 2>/dev/null || true; fi
 
 # ── Act on decision ──
+echo ""
+echo "  ========================================"
 if [ "$DECISION" = "go" ]; then
-    echo "  GO — ready for next iteration"
-    echo "  Run: harness-traj-weaver observe → diagnose → propose → evaluate"
+    echo "  Decision: GO"
+    echo ""
+    echo "  Commit landed. Feedback archived → .metaharness/$VERSION/outputs/"
+    echo ""
+    echo "  Next step:"
+    echo "    Run the harness again to start the next iteration."
+    echo "    Or: git push to trigger the full push review cycle."
 elif [ "$DECISION" = "nogo" ]; then
-    echo "  NO-GO — review feedback and fix issues before next commit"
+    echo "  Decision: NO-GO"
+    echo ""
+    echo "  Commit blocked. Review the feedback above."
+    echo "  Fix issues, then commit again."
 else
-    echo "  Timed out — no decision received"
+    echo "  Timed out — no decision received."
+    echo "  Review the human-loop at your convenience."
 fi
-
+echo "  ========================================"
 echo ""
 exit 0
