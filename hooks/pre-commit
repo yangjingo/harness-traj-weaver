@@ -48,12 +48,43 @@ if [ -f "$SURVEY_SCRIPT" ]; then
     if [ -f "$HUMAN_LOOP" ]; then
         echo "  Human-loop: $HUMAN_LOOP"
 
-        # Inject staged diff summary
+        # Inject staged diff + decision form
         STAGED_DIFF=$(git diff --cached --stat 2>/dev/null | head -30)
         python -c "
 html = open('$HUMAN_LOOP','r',encoding='utf-8').read()
-diff_block = '<div class=\"question ctx-block\"><h3>Staged Changes</h3><pre style=\"font-family:JetBrains Mono,monospace;font-size:13px;white-space:pre-wrap;max-height:240px;overflow-y:auto;\">' + '''$STAGED_DIFF''' + '</pre></div>'
+diff_block = '<div class=\"question ctx-block\"><h3>Staged Changes (this commit)</h3><pre style=\"font-family:JetBrains Mono,monospace;font-size:13px;white-space:pre-wrap;max-height:240px;overflow-y:auto;\">' + '''$STAGED_DIFF''' + '</pre></div>'
 html = html.replace('<div class=\"question\">', diff_block + '<div class=\"question\">', 1)
+
+decision = '''
+<div class=\"question\" style=\"margin-top:32px;border:2px solid var(--primary);\">
+  <h3>Final Decision</h3>
+  <p style=\"color:var(--muted);margin-bottom:12px;\">Complete the survey above, then choose:</p>
+  <button onclick=\"submit(\\'go\\')\" style=\"padding:12px 28px;font-size:15px;font-weight:500;border-radius:8px;border:none;cursor:pointer;background:#5db872;color:#fff;margin-right:12px;\">GO — Allow Commit</button>
+  <button onclick=\"submit(\\'nogo\\')\" style=\"padding:12px 28px;font-size:15px;font-weight:500;border-radius:8px;border:none;cursor:pointer;background:#c64545;color:#fff;\">NO-GO — Block Commit</button>
+  <div id=\"status\" style=\"margin-top:12px;font-size:14px;color:var(--muted);\"></div>
+</div>
+<script>
+async function submit(d) {
+  document.getElementById(\"status\").textContent = \"Submitting...\";
+  try {
+    var data = {decision: d, short_hash: \"$SHORT_HASH\", timestamp: new Date().toISOString()};
+    var radios = document.querySelectorAll(\"input[type=radio]:checked\");
+    radios.forEach(function(el){data[el.name]=el.value});
+    var texts = document.querySelectorAll(\"textarea\");
+    texts.forEach(function(el,i){if(el.value)data[\"text\"+i]=el.value});
+    await fetch(\"http://127.0.0.1:8767/submit-feedback\", {
+      method: \"POST\", headers: {\"Content-Type\": \"application/json\"},
+      body: JSON.stringify(data)
+    });
+    document.getElementById(\"status\").textContent = d === \"go\" ? \"GO — you may close this tab.\" : \"NO-GO — commit blocked.\";
+    document.querySelectorAll(\"button\").forEach(function(b){b.disabled=true});
+  } catch(e) {
+    document.getElementById(\"status\").textContent = \"Server not running. Start: python skills/survey/scripts/archive_feedback.py 8767\";
+  }
+}
+</script>
+'''
+html = html.replace('</body>', decision + '</body>')
 open('$HUMAN_LOOP','w',encoding='utf-8').write(html)
 " 2>/dev/null || true
     fi
