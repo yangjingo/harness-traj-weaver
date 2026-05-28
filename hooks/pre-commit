@@ -14,12 +14,24 @@ if git diff --cached --quiet; then exit 0; fi
 REPO_ROOT=$(git rev-parse --show-toplevel)
 COMMIT_MSG_FILE=$(git rev-parse --git-dir)/COMMIT_EDITMSG
 GOAL=$(head -1 "$COMMIT_MSG_FILE" 2>/dev/null || echo "")
-VERSION=$(git describe --tags --always 2>/dev/null || echo "v0.1.0")
+VERSION=$(grep -oP '## \[\K[0-9.]+(?=\])' "$REPO_ROOT/changelog.md" 2>/dev/null | head -1 || echo "0.1.0")
+VERSION="v${VERSION:-0.1.0}"
 SHORT_HASH=$(git diff --cached | sha256sum | cut -c1-8)
 OUTDIR="$REPO_ROOT/.metaharness/$VERSION/outputs"
 METRIC_SCRIPT="$REPO_ROOT/skills/metric/scripts/generate_dashboard.py"
 SURVEY_SCRIPT="$REPO_ROOT/skills/survey/scripts/generate_survey.py"
-mkdir -p "$OUTDIR"
+SESSION_ID="${CLAUDE_CODE_SESSION_ID:-}"
+INPUTDIR="$REPO_ROOT/.metaharness/$VERSION/inputs"
+mkdir -p "$OUTDIR" "$INPUTDIR"
+
+# ── Archive current session ──
+if [ -n "$SESSION_ID" ]; then
+    SESSION_FILE=$(ls "$HOME/.claude/projects"/*/"$SESSION_ID".jsonl 2>/dev/null | head -1)
+    if [ -n "${SESSION_FILE:-}" ] && [ -f "$SESSION_FILE" ]; then
+        cp "$SESSION_FILE" "$INPUTDIR/session-$SESSION_ID.jsonl" 2>/dev/null || true
+        echo "  Session archived: session-$SESSION_ID.jsonl"
+    fi
+fi
 
 echo ""
 echo "=== harness-traj-weaver (pre-commit) ==="
