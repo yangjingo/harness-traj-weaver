@@ -1,0 +1,74 @@
+{
+  "plan_version": "v0.3.0",
+  "from_version": "v0.2.0",
+  "generated": "2026-05-28T15:25:00+08:00",
+  "based_on": {
+    "trigger": ".metaharness/plan-trigger.json",
+    "feedback": "meta-harness-feedback-2026-05-28T15-30-00.json",
+    "commits": 15
+  },
+  "diagnosis": {
+    "feedback_summary": {
+      "scope": "d — 大面积改动，难以评估",
+      "breaking": "c — 有破坏性但已兼容",
+      "completeness": "c — 部分遗漏"
+    },
+    "root_causes": [
+      "v0.2.0 一次性改了 15+ commits，覆盖 skill 标准化/hook 集成/QA 闭环，范围过大",
+      "文档 (skill.md/changelog.md/ROADMAP.md) 未及时跟进每次 commit",
+      "缺少 .gitignore 和基础工程卫生"
+    ]
+  },
+  "proposal": {
+    "theme": "工程卫生 + 闭环验证",
+    "tasks": [
+      {
+        "id": "P0-1",
+        "file": ".gitignore",
+        "action": "create",
+        "desc": "添加 .gitignore，排除 .metaharness/"
+      },
+      {
+        "id": "P0-2",
+        "file": "changelog.md",
+        "action": "edit",
+        "desc": "补充 v0.2.0 遗漏的变更：hook QA 模式、plan trigger、session 归档、版本检测统一"
+      },
+      {
+        "id": "P0-3",
+        "file": "skill.md",
+        "action": "edit",
+        "desc": "更新 Hook Integration 章节：加入 plan trigger 流程和 post-commit 行为"
+      },
+      {
+        "id": "P1-1",
+        "file": "ROADMAP.md",
+        "action": "commit",
+        "desc": "将 ROADMAP.md 纳入版本管理"
+      },
+      {
+        "id": "P1-2",
+        "file": "hooks/pre-push",
+        "action": "test",
+        "desc": "在实际 push 场景测试 pre-push hook"
+      },
+      {
+        "id": "P1-3",
+        "file": ".metaharness/v0.2.0/feedback",
+        "action": "review",
+        "desc": "v0.3.0 plan 必须引用 v0.2.0 的 QA 反馈，形成闭环"
+      },
+      {
+        "id": "P2-1",
+        "file": "scripts/plan.sh",
+        "action": "create",
+        "desc": "独立的 plan 生成脚本：读取 plan-trigger.json + feedback → 输出 plan proposal"
+      }
+    ]
+  },
+  "qa_review": {
+    "q1_scope": "v0.3.0 的目标是收敛而非扩张 — 仅做卫生和闭环，< 5 files",
+    "q2_breaking": "纯增量，不改变现有 hook 行为",
+    "q3_completeness": "每 commit 同步 docs，不再遗漏"
+  }
+}

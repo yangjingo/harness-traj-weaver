@@ -1,0 +1,12 @@
+{
+  "version": "v0.2.0",
+  "goal": "skill standardization, hook integration, output isolation, human-in-the-loop gating",
+  "mode": "quick",
+  "answers": [
+    {"q": "变更范围", "a": "d", "choice": "大面积，难以评估"},
+    {"q": "破坏性变更", "a": "c", "choice": "有破坏性，但已兼容"},
+    {"q": "同步情况", "a": "c", "choice": "部分遗漏"}
+  ],
+  "decision": "y",
+  "timestamp": "2026-05-28T15:30:00"
+}
