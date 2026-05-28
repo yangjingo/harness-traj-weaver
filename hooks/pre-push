@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # === harness-traj-weaver — pre-push hook ===
-# Triggers full harness-traj-weaver skill cycle on git push.
+# Generates push review artifacts. Fast, always exits 0.
 # Install: cp hooks/pre-push .git/hooks/pre-push && chmod +x .git/hooks/pre-push
 #
 # Config:
@@ -14,7 +14,11 @@ if [ "$SKIP" = "true" ]; then exit 0; fi
 REPO_ROOT=$(git rev-parse --show-toplevel)
 VERSION=$(grep -oP '## \[\K[0-9.]+(?=\])' "$REPO_ROOT/changelog.md" 2>/dev/null | head -1 || echo "0.1.0")
 VERSION="v${VERSION:-0.1.0}"
-REMOTE=${1:-origin}
+IN_CLAUDE="${CLAUDE_CODE_SESSION_ID:-}"
+METRIC_SCRIPT="$REPO_ROOT/skills/metric/scripts/generate_dashboard.py"
+SURVEY_SCRIPT="$REPO_ROOT/skills/survey/scripts/generate_survey.py"
+OUTDIR="$REPO_ROOT/.metaharness/$VERSION/outputs"
+mkdir -p "$OUTDIR"
 
 while read -r local_ref local_sha remote_ref remote_sha; do
     if [ "$local_sha" = "0000000000000000000000000000000000000000" ]; then continue; fi
@@ -24,29 +28,25 @@ while read -r local_ref local_sha remote_ref remote_sha; do
         RANGE="$local_sha"
     fi
 
-    OUTDIR="$REPO_ROOT/.metaharness/$VERSION/outputs"
-    mkdir -p "$OUTDIR"
-    PUSH_ID="push-$(date +%Y%m%d-%H%M%S)"
-
     echo ""
     echo "=== harness-traj-weaver (push) ==="
+    echo "  Range: $RANGE"
     echo ""
 
-    PROMPT="Run harness-traj-weaver push review.
-1. Observe: commits in $RANGE (git log --oneline $RANGE). Prior .metaharness/$VERSION/ data.
-2. Diagnose: quality regressions, missing docs, search-set violations.
-3. Propose: concrete fixes.
-4. Evaluate: full search-set validation, score 0-5.
-5. Generate: traj-viewer.html and human-loop.html → .metaharness/$VERSION/outputs/
-6. Return JSON with verdict."
-
-    RESULT=$(claude -p "$PROMPT" 2>/dev/null || echo '{"pass":true,"verdict":"skill-unavailable"}')
-    echo "  $RESULT"
-
-    # Open generated HTML
-    for f in "$OUTDIR"/human-loop-*.html "$OUTDIR"/traj-*.html; do
-        if [ -f "$f" ]; then start "$f" 2>/dev/null || open "$f" 2>/dev/null || true; fi
-    done
+    if [ -n "$IN_CLAUDE" ]; then
+        # Claude Code: local scripts only
+        if [ -f "$METRIC_SCRIPT" ]; then
+            python "$METRIC_SCRIPT" --diff "$RANGE" --output /dev/null 2>&1 || true
+        fi
+        if [ -f "$SURVEY_SCRIPT" ]; then
+            python "$SURVEY_SCRIPT" --type human-loop --version "$VERSION" --output "$OUTDIR/human-loop-push-$(date +%Y%m%d-%H%M%S).html" 2>/dev/null || true
+        fi
+        echo "  (Claude Code — review artifacts generated)"
+    else
+        # Terminal: trigger full skill review
+        PROMPT="harness-traj-weaver push review. Commits: $RANGE. Generate human-loop + traj → .metaharness/$VERSION/outputs/. Return verdict JSON."
+        claude -p "$PROMPT" 2>/dev/null || echo '{"verdict":"skill-unavailable"}'
+    fi
 
     echo ""
 done
