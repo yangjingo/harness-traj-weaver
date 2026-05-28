@@ -8,12 +8,18 @@ import sys
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
 def _detect_version():
+    changelog = os.path.join(REPO_ROOT, 'changelog.md')
     try:
-        tag = subprocess.check_output(['git', 'describe', '--tags', '--always'],
-                                      cwd=REPO_ROOT, text=True).strip()
-        return tag
+        with open(changelog) as f:
+            for line in f:
+                if line.startswith('## ['):
+                    import re
+                    m = re.match(r'## \[([0-9.]+)\]', line)
+                    if m:
+                        return f'v{m.group(1)}'
     except Exception:
-        return 'v0.1.0'
+        pass
+    return 'v0.1.0'
 
 VERSION = os.environ.get('METAHARNESS_VERSION', _detect_version())
 OUTPUT_DIR = os.path.join(REPO_ROOT, '.metaharness', VERSION, 'outputs')
