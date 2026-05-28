@@ -54,22 +54,23 @@ This skill is designed to be triggered by git hooks — not run standalone scrip
 
 ### Commit Hook (`pre-commit`)
 
-Triggered on `git commit`. Runs a lightweight review of staged changes:
+```
+git commit
+    │
+    ▼
+hook fires → skill triggered → Observe → Diagnose → Propose → Evaluate
+    │                                                              │
+    │         human-loop.html opened in browser ◄──────────────────┘
+    │
+    ├── Human clicks "GO"  → commit proceeds
+    └── Human clicks "NO-GO" → commit blocked
+```
 
-1. **Observe** — Read `git diff --cached` + commit message
-2. **Diagnose** — Check changes against search-set principles
-3. **Evaluate** — Score 0-5. Block commit if below threshold.
-4. Write results to `.metaharness/v{version}/feedback/commit-{short-hash}.json`
+The skill generates the review, but the HUMAN gates the commit. The hook waits for a decision via the human-loop feedback endpoint before allowing the commit to land.
 
 ### Push Hook (`pre-push`)
 
-Triggered on `git push`. Runs the full harness cycle:
-
-1. **Observe** — Read all commits being pushed + prior `.metaharness/` traces
-2. **Diagnose** — Root-cause analysis of any quality regressions
-3. **Propose** — Generate targeted improvement suggestions
-4. **Evaluate** — Full search-set validation
-5. Generate `traj-viewer.html` + `human-loop.html` → `.metaharness/v{version}/`
+Same human-in-the-loop flow for `git push` — skill reviews, human decides.
 
 ### Installation
 
