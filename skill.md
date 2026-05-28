@@ -70,7 +70,7 @@ The skill generates the review, but the HUMAN gates the commit. Each commit auto
 
 ### Push Hook (`pre-push`)
 
-Same human-in-the-loop flow for `git push`.
+Same human-in-the-loop flow for `git push` — session archived, human-loop generated, human gates.
 
 ### Post-Commit Monitoring
 
