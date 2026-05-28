@@ -1,7 +1,7 @@
 {
   "from_version": "v0.2.0",
-  "last_commit": "06e42da",
-  "last_goal": "track .metaharness/ as project memory",
-  "timestamp": "2026-05-28T16:11:54+08:00",
+  "last_commit": "fa2fec7",
+  "last_goal": "chore: sync post-commit artifacts from last commit",
+  "timestamp": "2026-05-28T16:14:04+08:00",
   "action": "Run harness-traj-weaver plan to generate the next iteration proposal."
 }
