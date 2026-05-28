@@ -72,9 +72,9 @@ The skill generates the review, but the HUMAN gates the commit. The hook waits f
 
 Same human-in-the-loop flow for `git push`.
 
-### Detection
+### Post-Commit Monitoring
 
-The hook auto-detects Claude Code sessions (`$CLAUDE_CODE_SESSION_ID`) and uses local scripts instead of recursive `claude -p`.
+After commit lands, `post-commit` hook starts the archive server, opens human-loop in browser, and monitors for human feedback. On GO, it signals readiness for the next harness iteration.
 
 ### Installation
 
