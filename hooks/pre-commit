@@ -1,20 +1,13 @@
 #!/usr/bin/env bash
 # === harness-traj-weaver — pre-commit hook ===
-#
-# Claude Code:     generates human-loop + traj, skips wait (CC is the reviewer)
-# Terminal:        generates human-loop, opens browser, waits for human GO/NO-GO
+# Generates review artifacts. Fast, always exits 0.
+# Post-commit hook handles monitoring + human-in-the-loop.
 #
 # Install: cp hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
-#
-# Config:
-#   git config metaharness.skip true     # skip hook entirely
-#   git config metaharness.timeout 300   # max wait for human decision (terminal only)
 
 set -euo pipefail
 
 SKIP=$(git config --get metaharness.skip 2>/dev/null || echo "false")
-TIMEOUT=$(git config --get metaharness.timeout 2>/dev/null || echo "300")
-
 if [ "$SKIP" = "true" ]; then exit 0; fi
 if git diff --cached --quiet; then exit 0; fi
 
@@ -24,113 +17,49 @@ GOAL=$(head -1 "$COMMIT_MSG_FILE" 2>/dev/null || echo "")
 VERSION=$(git describe --tags --always 2>/dev/null || echo "v0.1.0")
 SHORT_HASH=$(git diff --cached | sha256sum | cut -c1-8)
 OUTDIR="$REPO_ROOT/.metaharness/$VERSION/outputs"
-FEEDBACK_FILE="$OUTDIR/decision-$SHORT_HASH.json"
 METRIC_SCRIPT="$REPO_ROOT/skills/metric/scripts/generate_dashboard.py"
 SURVEY_SCRIPT="$REPO_ROOT/skills/survey/scripts/generate_survey.py"
-ARCHIVE_SCRIPT="$REPO_ROOT/skills/survey/scripts/archive_feedback.py"
-IN_CLAUDE="${CLAUDE_CODE_SESSION_ID:-}"
 mkdir -p "$OUTDIR"
 
 echo ""
-echo "=== harness-traj-weaver ==="
+echo "=== harness-traj-weaver (pre-commit) ==="
 
-# ── Generate metric review ──
+# ── Metric review ──
 if [ -f "$METRIC_SCRIPT" ]; then
     METRIC_OUT=$(python "$METRIC_SCRIPT" --diff HEAD --goal "$GOAL" --output /dev/null 2>&1 || true)
     SCORE=$(echo "$METRIC_OUT" | sed -n 's/.*Overall score:\s*\([0-9.]*\).*/\1/p' | head -1)
     echo "  Metric: ${SCORE:-?}/5"
 fi
 
-# ── Generate human-loop from reference template ──
+# ── Generate human-loop ──
 HUMAN_LOOP="$OUTDIR/human-loop-$SHORT_HASH.html"
 if [ -f "$SURVEY_SCRIPT" ]; then
     python "$SURVEY_SCRIPT" --type human-loop --version "$VERSION" --output "$HUMAN_LOOP" 2>/dev/null || true
     if [ -f "$HUMAN_LOOP" ]; then
-        echo "  Human-loop: $HUMAN_LOOP"
-
-        # Inject staged diff + decision form
         STAGED_DIFF=$(git diff --cached --stat 2>/dev/null | head -30)
+        # Inject staged diff + decision form
         python -c "
 html = open('$HUMAN_LOOP','r',encoding='utf-8').read()
-diff_block = '<div class=\"question ctx-block\"><h3>Staged Changes (this commit)</h3><pre style=\"font-family:JetBrains Mono,monospace;font-size:13px;white-space:pre-wrap;max-height:240px;overflow-y:auto;\">' + '''$STAGED_DIFF''' + '</pre></div>'
+diff_block = '<div class=\"question ctx-block\"><h3>Staged Changes</h3><pre style=\"font-family:JetBrains Mono,monospace;font-size:13px;white-space:pre-wrap;max-height:240px;overflow-y:auto;\">' + '''$STAGED_DIFF''' + '</pre></div>'
 html = html.replace('<div class=\"question\">', diff_block + '<div class=\"question\">', 1)
-
 decision = '''
 <div class=\"question\" style=\"margin-top:32px;border:2px solid var(--primary);\">
   <h3>Final Decision</h3>
   <p style=\"color:var(--muted);margin-bottom:12px;\">Complete the survey above, then choose:</p>
-  <button onclick=\"submit(\\'go\\')\" style=\"padding:12px 28px;font-size:15px;font-weight:500;border-radius:8px;border:none;cursor:pointer;background:#5db872;color:#fff;margin-right:12px;\">GO — Allow Commit</button>
-  <button onclick=\"submit(\\'nogo\\')\" style=\"padding:12px 28px;font-size:15px;font-weight:500;border-radius:8px;border:none;cursor:pointer;background:#c64545;color:#fff;\">NO-GO — Block Commit</button>
+  <button onclick=\"submit(\\'go\\')\" style=\"padding:12px 28px;font-size:15px;font-weight:500;border-radius:8px;border:none;cursor:pointer;background:#5db872;color:#fff;margin-right:12px;\">GO — Allow</button>
+  <button onclick=\"submit(\\'nogo\\')\" style=\"padding:12px 28px;font-size:15px;font-weight:500;border-radius:8px;border:none;cursor:pointer;background:#c64545;color:#fff;\">NO-GO — Block</button>
   <div id=\"status\" style=\"margin-top:12px;font-size:14px;color:var(--muted);\"></div>
 </div>
 <script>
-async function submit(d) {
-  document.getElementById(\"status\").textContent = \"Submitting...\";
-  try {
-    var data = {decision: d, short_hash: \"$SHORT_HASH\", timestamp: new Date().toISOString()};
-    var radios = document.querySelectorAll(\"input[type=radio]:checked\");
-    radios.forEach(function(el){data[el.name]=el.value});
-    var texts = document.querySelectorAll(\"textarea\");
-    texts.forEach(function(el,i){if(el.value)data[\"text\"+i]=el.value});
-    await fetch(\"http://127.0.0.1:8767/submit-feedback\", {
-      method: \"POST\", headers: {\"Content-Type\": \"application/json\"},
-      body: JSON.stringify(data)
-    });
-    document.getElementById(\"status\").textContent = d === \"go\" ? \"GO — you may close this tab.\" : \"NO-GO — commit blocked.\";
-    document.querySelectorAll(\"button\").forEach(function(b){b.disabled=true});
-  } catch(e) {
-    document.getElementById(\"status\").textContent = \"Server not running. Start: python skills/survey/scripts/archive_feedback.py 8767\";
-  }
-}
+async function submit(d){document.getElementById(\"status\").textContent=\"Submitting...\";try{var data={decision:d,short_hash:\"$SHORT_HASH\",timestamp:new Date().toISOString()};document.querySelectorAll(\"input[type=radio]:checked\").forEach(function(e){data[e.name]=e.value});document.querySelectorAll(\"textarea\").forEach(function(e,i){if(e.value)data[\"text\"+i]=e.value});await fetch(\"http://127.0.0.1:8767/submit-feedback\",{method:\"POST\",headers:{\"Content-Type\":\"application/json\"},body:JSON.stringify(data)});document.getElementById(\"status\").textContent=d===\"go\"?\"GO — you may close this tab.\":\"NO-GO — noted.\";document.querySelectorAll(\"button\").forEach(function(b){b.disabled=true})}catch(e){document.getElementById(\"status\").textContent=\"Start server: python skills/survey/scripts/archive_feedback.py 8767\"}}
 </script>
 '''
 html = html.replace('</body>', decision + '</body>')
 open('$HUMAN_LOOP','w',encoding='utf-8').write(html)
 " 2>/dev/null || true
+        echo "  Human-loop: $HUMAN_LOOP"
     fi
 fi
 
-# ── Claude Code: skip wait, commit proceeds ──
-if [ -n "$IN_CLAUDE" ]; then
-    echo "  (Claude Code — skipping human wait)"
-    echo ""
-    exit 0
-fi
-
-# ── Terminal: start server, open browser, wait for human ──
-echo "  Starting review server..."
-if [ -f "$ARCHIVE_SCRIPT" ]; then
-    python "$ARCHIVE_SCRIPT" 8767 &
-    SERVER_PID=$!
-    sleep 1
-fi
-
-start "$HUMAN_LOOP" 2>/dev/null || open "$HUMAN_LOOP" 2>/dev/null || true
-
 echo ""
-echo "  Waiting for your decision (timeout: ${TIMEOUT}s)..."
-echo "  Review the opened page and click GO or NO-GO."
-echo ""
-
-DECISION=""
-ELAPSED=0
-while [ $ELAPSED -lt $TIMEOUT ]; do
-    if [ -f "$FEEDBACK_FILE" ]; then
-        DECISION=$(python -c "import json;d=json.load(open('$FEEDBACK_FILE'));print(d.get('decision',''))" 2>/dev/null || echo "")
-        if [ -n "$DECISION" ]; then break; fi
-    fi
-    sleep 2
-    ELAPSED=$((ELAPSED + 2))
-done
-
-if [ -n "${SERVER_PID:-}" ]; then kill "$SERVER_PID" 2>/dev/null || true; fi
-
-if [ "$DECISION" = "go" ]; then
-    echo "  GO — commit proceeding"
-    echo ""
-    exit 0
-else
-    echo "  ${DECISION:-timed out} — commit blocked"
-    echo ""
-    exit 1
-fi
+exit 0

@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+# === harness-traj-weaver — post-commit hook ===
+# Monitors for human-loop feedback after commit lands.
+# Starts server, opens browser, waits for GO/NO-GO.
+# On GO: triggers next harness iteration.
+#
+# Install: cp hooks/post-commit .git/hooks/post-commit && chmod +x .git/hooks/post-commit
+
+set -euo pipefail
+
+SKIP=$(git config --get metaharness.skip 2>/dev/null || echo "false")
+if [ "$SKIP" = "true" ]; then exit 0; fi
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+VERSION=$(git describe --tags --always 2>/dev/null || echo "v0.1.0")
+COMMIT_HASH=$(git rev-parse --short HEAD)
+OUTDIR="$REPO_ROOT/.metaharness/$VERSION/outputs"
+ARCHIVE_SCRIPT="$REPO_ROOT/skills/survey/scripts/archive_feedback.py"
+
+# Find the most recent human-loop
+HUMAN_LOOP=$(ls -t "$OUTDIR"/human-loop-*.html 2>/dev/null | head -1)
+
+echo ""
+echo "=== harness-traj-weaver (post-commit) ==="
+echo "  Commit: $COMMIT_HASH"
+
+if [ -z "$HUMAN_LOOP" ] || [ ! -f "$HUMAN_LOOP" ]; then
+    echo "  No human-loop found — skipping"
+    echo ""
+    exit 0
+fi
+
+# ── Start review server ──
+SERVER_PID=""
+if [ -f "$ARCHIVE_SCRIPT" ]; then
+    python "$ARCHIVE_SCRIPT" 8767 >/dev/null 2>&1 &
+    SERVER_PID=$!
+    sleep 1
+    echo "  Server: http://127.0.0.1:8767"
+fi
+
+# ── Open human-loop ──
+start "$HUMAN_LOOP" 2>/dev/null || open "$HUMAN_LOOP" 2>/dev/null || true
+echo "  Opened: $HUMAN_LOOP"
+
+# ── Monitor for decision ──
+TIMEOUT=300
+FEEDBACK_FILE="$OUTDIR/decision-"*.json
+echo "  Monitoring for decision (timeout: ${TIMEOUT}s)..."
+
+DECISION=""
+ELAPSED=0
+while [ $ELAPSED -lt $TIMEOUT ]; do
+    LATEST=$(ls -t "$OUTDIR"/meta-harness-feedback-*.json 2>/dev/null | head -1)
+    if [ -n "$LATEST" ] && [ -f "$LATEST" ]; then
+        DECISION=$(python -c "import json;d=json.load(open('$LATEST'));print(d.get('decision',''))" 2>/dev/null || echo "")
+        if [ -n "$DECISION" ]; then
+            echo "  Decision: $DECISION"
+            break
+        fi
+    fi
+    sleep 3
+    ELAPSED=$((ELAPSED + 3))
+done
+
+# ── Cleanup ──
+if [ -n "${SERVER_PID:-}" ]; then kill "$SERVER_PID" 2>/dev/null || true; fi
+
+# ── Act on decision ──
+if [ "$DECISION" = "go" ]; then
+    echo "  GO — ready for next iteration"
+    echo "  Run: harness-traj-weaver observe → diagnose → propose → evaluate"
+elif [ "$DECISION" = "nogo" ]; then
+    echo "  NO-GO — review feedback and fix issues before next commit"
+else
+    echo "  Timed out — no decision received"
+fi
+
+echo ""
+exit 0
