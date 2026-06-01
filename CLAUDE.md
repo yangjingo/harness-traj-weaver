@@ -1,8 +1,8 @@
-# claude.md
+# CLAUDE.md
 
 ## Documentation Sync
 
-`readme.md` (English) and `readme-zh.md` (Chinese) must be kept in sync. Any change to one requires the same change in the other.
+`README.md` (English) and `README-ZH.md` (Chinese) must be kept in sync. Any change to one requires the same change in the other.
 
 ## Commit Workflow
 
@@ -10,7 +10,7 @@
 
 Run through this checklist and remind the user:
 
-1. **Docs** — Are readme.md and readme-zh.md in sync?
+1. **Docs** — Are README.md and README-ZH.md in sync?
 2. **CHANGELOG** — Are user-facing changes recorded under `[Unreleased]`?
 3. **Eval** — Have benchmark / eval results been updated if applicable?
 
@@ -19,7 +19,7 @@ Run through this checklist and remind the user:
 When cutting a new version release:
 
 - Move `[Unreleased]` entries to a new dated version section (e.g., `## [0.1.0] — 2026-05-23`)
-- Ensure both readme.md and readme-zh.md reflect the new version
+- Ensure both README.md and README-ZH.md reflect the new version
 
 ## Skill Routing
 

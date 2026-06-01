@@ -10,7 +10,7 @@ REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 
 
 
 def detect_version():
-    changelog = os.path.join(REPO_ROOT, 'changelog.md')
+    changelog = os.path.join(REPO_ROOT, 'CHANGELOG.md')
     try:
         with open(changelog) as f:
             for line in f:

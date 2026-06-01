@@ -111,7 +111,7 @@ def main():
     git_log = git_log_oneline()
     git_detail = git_log_detail()
     git_diffstat = git_diff_stat()
-    changelog_raw = load_file('changelog.md')
+    changelog_raw = load_file('CHANGELOG.md')
 
     # Build changelog HTML summary
     changelog_html = format_changelog_html(changelog_raw)
