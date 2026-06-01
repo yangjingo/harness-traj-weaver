@@ -1,0 +1,346 @@
+{
+  "meta": {
+    "version": "0.2.0",
+    "total_questions": 27,
+    "quick_mode_questions": ["a1", "b1", "c1", "d2", "e1", "e1b", "f1", "g4"]
+  },
+  "sections": {
+    "A": {
+      "title": "整体视觉",
+      "title_en": "Overall Visual",
+      "questions": {
+        "a1": {
+          "header": "配色",
+          "question": "A1. 整体配色是否符合预期？",
+          "multiSelect": false,
+          "options": [
+            { "label": "满意，不需要调整 (recommended)", "description": "颜色搭配和谐，符合技能定位和输出场景，无需改动" },
+            { "label": "基本满意，色调可微调", "description": "整体方向对，但个别颜色需要调整饱和度、明度或对比度" },
+            { "label": "不满意，需要重新设计", "description": "配色方案与预期差距较大，需要重新选择色板或调整主色调" }
+          ]
+        },
+        "a2": {
+          "header": "字体",
+          "question": "A2. 字体搭配是否合适？",
+          "multiSelect": false,
+          "options": [
+            { "label": "合适，保持现状 (recommended)", "description": "Cormorant Garamond 标题 + Inter 正文 + JetBrains Mono 代码，层级清晰" },
+            { "label": "标题字体需要更换", "description": "Cormorant Garamond 不适合当前风格，建议换用其他标题字体" },
+            { "label": "正文字体需要更换", "description": "Inter 在正文中的可读性或风格不匹配，建议换用其他正文字体" },
+            { "label": "代码字体需要更换", "description": "JetBrains Mono 在代码块中的显示效果不理想，建议换用其他等宽字体" }
+          ]
+        },
+        "a3": {
+          "header": "布局",
+          "question": "A3. 页面布局是否合理？",
+          "multiSelect": false,
+          "options": [
+            { "label": "合理，保持现状 (recommended)", "description": "最大宽度 780px 居中，信息密度适中，阅读体验良好" },
+            { "label": "部分布局需要调整", "description": "整体可用，但某些区域的间距、对齐或响应式行为需要微调" },
+            { "label": "建议换成其他布局", "description": "当前布局不符合使用场景，建议采用完全不同的版式结构" }
+          ]
+        }
+      }
+    },
+    "B": {
+      "title": "导航 / TOC",
+      "title_en": "Navigation / TOC",
+      "questions": {
+        "b1": {
+          "header": "TOC分类",
+          "question": "B1. TOC 条目按类型分组是否提升了可读性？",
+          "multiSelect": false,
+          "options": [
+            { "label": "是，明显提升 (recommended)", "description": "分组后能快速定位某一类内容，浏览效率显著提高" },
+            { "label": "有一点提升", "description": "分组比不分好，但提升幅度有限，分组方式还可以优化" },
+            { "label": "感觉一般", "description": "分组与否差异不大，没有明显改善阅读体验" },
+            { "label": "不如原来的设计", "description": "分组反而增加了认知负担，不如扁平列表直观" }
+          ]
+        },
+        "b2": {
+          "header": "图标颜色",
+          "question": "B2. 各类条目的图标和颜色区分是否清晰？",
+          "multiSelect": false,
+          "options": [
+            { "label": "清晰，一眼可辨 (recommended)", "description": "不同条目类型的视觉区分明确，无需额外思考即可识别" },
+            { "label": "基本可辨，但部分颜色过于接近", "description": "大部分能区分，但个别类型的颜色在视觉上容易混淆" },
+            { "label": "不够清晰，需要重新设计", "description": "当前图标和颜色的区分度不足，需要更明显的视觉差异" }
+          ]
+        },
+        "b3": {
+          "header": "跳转行为",
+          "question": "B3. TOC 的点击跳转行为是否符合预期？",
+          "multiSelect": false,
+          "options": [
+            { "label": "符合预期 (recommended)", "description": "点击后平滑滚动到目标位置，无需额外操作" },
+            { "label": "跳转不准确", "description": "点击后定位偏移或跳转到错误位置，需要修复" },
+            { "label": "建议增加交互反馈", "description": "跳转本身正常，但建议增加高亮当前项、滚动进度等视觉反馈" }
+          ]
+        }
+      }
+    },
+    "C": {
+      "title": "内容展示",
+      "title_en": "Content Display",
+      "questions": {
+        "c1": {
+          "header": "折叠设计",
+          "question": "C1. 按 Turn 折叠的设计是否实用？",
+          "multiSelect": false,
+          "options": [
+            { "label": "非常实用 (recommended)", "description": "折叠后能快速浏览整体结构，需要时再展开查看细节，显著提升浏览效率" },
+            { "label": "基本实用，但策略需调整", "description": "折叠方向对，但默认展开/折叠的策略需要调整，比如默认展开首条" },
+            { "label": "不实用，建议平铺展示", "description": "折叠增加了点击成本，不如全部展开直接滚动浏览" }
+          ]
+        },
+        "c2": {
+          "header": "操作标签",
+          "question": "C2. Turn 头部的操作标签是否有助于快速理解内容？",
+          "multiSelect": false,
+          "options": [
+            { "label": "是，非常有帮助 (recommended)", "description": "操作标签提供了关键上下文，无需展开就能大致了解 Turn 在做什么" },
+            { "label": "有一些帮助", "description": "标签有一定参考价值，但不是每次都会关注" },
+            { "label": "没什么帮助", "description": "标签信息量不够或不够准确，看了和没看差不多" },
+            { "label": "造成干扰，建议去掉", "description": "标签增加了视觉噪音，让界面显得更拥挤" }
+          ]
+        },
+        "c3": {
+          "header": "截断策略",
+          "question": "C3. 长内容（thinking / output）的折叠截断策略是否合理？",
+          "multiSelect": false,
+          "options": [
+            { "label": "合理，满足需求 (recommended)", "description": "长内容被适当截断，想看完整内容时展开即可，平衡了可读性和信息密度" },
+            { "label": "希望调整折叠阈值", "description": "当前截断点太早或太晚，希望调整触发折叠的长度阈值" },
+            { "label": "希望完全不折叠", "description": "折叠带来了额外的操作成本，更希望所有内容直接完整展示" }
+          ]
+        },
+        "c4": {
+          "header": "信息密度",
+          "question": "C4. Tool 调用块的信息密度是否合适？",
+          "multiSelect": false,
+          "options": [
+            { "label": "合适，不多不少 (recommended)", "description": "tool_use 和 tool_result 的摘要信息刚好够理解上下文" },
+            { "label": "输出应该默认展开", "description": "tool_result 的内容经常是关键的，折叠起来反而需要多点一次" },
+            { "label": "输入摘要太短", "description": "当前摘要不足以理解 tool 被调用时的完整参数和意图" },
+            { "label": "需要显示更多字段", "description": "除了当前显示的字段外，还需要补充耗时、token 消耗等信息" }
+          ]
+        },
+        "c5": {
+          "header": "移动端",
+          "question": "C5. 移动端适配是否满足需求？",
+          "multiSelect": false,
+          "options": [
+            { "label": "满足需求 (recommended)", "description": "在手机和平板上浏览体验良好，布局自适应合理" },
+            { "label": "需要改进", "description": "移动端浏览存在具体问题，如字体过小、按钮过密、横向溢出等" },
+            { "label": "暂不考虑移动端", "description": "当前场景以桌面端为主，移动端适配优先级较低" }
+          ]
+        }
+      }
+    },
+    "D": {
+      "title": "数据与内容",
+      "title_en": "Data & Content",
+      "questions": {
+        "d1": {
+          "header": "截断",
+          "question": "D1. 内容截断策略是否合理？",
+          "multiSelect": false,
+          "options": [
+            { "label": "合理 (recommended)", "description": "截断点选择恰当，既控制了单页信息量，又不丢失关键内容" },
+            { "label": "需要更长的截断", "description": "当前截断太激进，经常需要展开才能看到关键信息" },
+            { "label": "建议不截断，完整展示", "description": "截断策略在当前场景下弊大于利，建议全部展示" }
+          ]
+        },
+        "d2": {
+          "header": "统计指标",
+          "question": "D2. 统计数据面板的指标选择是否覆盖了你关心的维度？",
+          "multiSelect": false,
+          "options": [
+            { "label": "完全覆盖 (recommended)", "description": "所有关心的指标都在面板上，不需要额外信息" },
+            { "label": "基本覆盖，但缺少某些指标", "description": "现有指标大部分有用，但有一些关键维度没有被统计到" },
+            { "label": "冗余，建议删减", "description": "面板上信息过多，一些指标实际意义不大，可以精简" }
+          ]
+        },
+        "d3": {
+          "header": "Demo",
+          "question": "D3. 当前 demo 展现的内容是否典型？",
+          "multiSelect": false,
+          "options": [
+            { "label": "非常典型 (recommended)", "description": "Demo 数据很好地展示了功能的核心价值和使用场景" },
+            { "label": "基本可以，但建议换数据", "description": "方向对，但建议换一个更有代表性或更贴近实际使用的数据集" },
+            { "label": "不够好，建议改用其他数据", "description": "当前 demo 展示的内容不能代表典型使用场景，需要重新选择" }
+          ]
+        }
+      }
+    },
+    "E": {
+      "title": "缺失功能",
+      "title_en": "Missing Features",
+      "questions": {
+        "e1": {
+          "header": "功能愿望单",
+          "question": "E1. 你最希望在下一版本看到哪些功能？（可多选 — 第1/2组）",
+          "multiSelect": true,
+          "options": [
+            { "label": "搜索/过滤内容", "description": "Ctrl+F 全文搜索，或按关键字/类型过滤条目" },
+            { "label": "Token 消耗统计", "description": "展示每个 Turn 的 token 使用量和费用估算" },
+            { "label": "暗色模式", "description": "提供暗色主题，适合夜间浏览或低光环境" },
+            { "label": "导出 PDF", "description": "将输出导出为排版精美的 PDF 文件" }
+          ]
+        },
+        "e1b": {
+          "header": "功能愿望单2",
+          "question": "E1. 续 — 还希望看到哪些功能？（可多选 — 第2/2组）",
+          "multiSelect": true,
+          "options": [
+            { "label": "多 session 对比", "description": "并排或叠加对比多个 session 的执行轨迹" },
+            { "label": "时间线缩放", "description": "按小时/分钟聚合时间线，快速定位时间段" },
+            { "label": "标注/批注", "description": "在轨迹上添加备注、书签或高亮标记" },
+            { "label": "其他", "description": "以上未列出的功能需求" }
+          ]
+        }
+      }
+    },
+    "F": {
+      "title": "总体评分",
+      "title_en": "Overall Rating",
+      "questions": {
+        "f1": {
+          "header": "满意度",
+          "question": "F1. 整体满意度评分",
+          "multiSelect": false,
+          "options": [
+            { "label": "非常满意 (recommended)", "description": "输出质量超出预期，可以直接投入使用" },
+            { "label": "满意，少量细节可优化", "description": "整体表现良好，只有个别细节需要微调" },
+            { "label": "基本可用，需要改进", "description": "核心功能可用，但存在明显问题需要修复" },
+            { "label": "不够好，需要大幅改进", "description": "有亮点但问题较多，或方向需要重新思考" }
+          ]
+        },
+        "f2": {
+          "header": "目标达成",
+          "question": "F2. 是否认为本次技能输出达到了预期目标？",
+          "multiSelect": false,
+          "options": [
+            { "label": "是，完全符合 (recommended)", "description": "输出完整实现了预期的功能和效果" },
+            { "label": "基本符合，但需要补充", "description": "核心目标达成，但某些方面还需要补充或增强" },
+            { "label": "还不够，差距较大", "description": "当前输出与预期目标还有明显差距，需要继续迭代" }
+          ]
+        }
+      }
+    },
+    "G": {
+      "title": "代码变更感知",
+      "title_en": "Diff-Aware Review",
+      "description": "Questions driven by the actual code diff — what was added, removed, kept, and why. These questions adapt to each iteration's concrete changes rather than using fixed templates. Claude reads the git diff and populates context before asking.",
+      "questions": {
+        "g1": {
+          "header": "新增vs保留",
+          "question": "G1. 本轮新增了 {new_count} 个文件、修改了 {mod_count} 个文件、保留了 {kept_count} 个旧文件。新增和保留的比例是否合理？",
+          "multiSelect": false,
+          "dynamic": true,
+          "options": [
+            { "label": "比例合理 (recommended)", "description": "新增刚好，保留了该保留的旧系统，没有不必要的膨胀或删减" },
+            { "label": "新增过多，可以精简", "description": "有些新增文件可以合并或省略，当前改动范围偏大" },
+            { "label": "保留过多，应该清理", "description": "旧文件中有冗余或过时的内容应该趁此机会删除" },
+            { "label": "删减过度，丢失了有价值的内容", "description": "旧系统中有价值的部分被误删或遗漏了" }
+          ]
+        },
+        "g2": {
+          "header": "设计决策",
+          "question": "G2. 本轮关键设计决策回顾：{key_decisions_summary}。这些决策在实现后是否仍然成立？",
+          "multiSelect": false,
+          "dynamic": true,
+          "options": [
+            { "label": "全部成立 (recommended)", "description": "实现验证了所有关键设计决策的正确性" },
+            { "label": "大部分成立，个别需要重新考虑", "description": "有一两个决策在实践中暴露出问题，需要调整" },
+            { "label": "有一个关键决策需要推翻", "description": "某个重要设计选择在实现后证明是错误的方向" }
+          ]
+        },
+        "g3": {
+          "header": "集成面",
+          "question": "G3. 新代码与现有系统的集成面是否干净？\n\n本轮的集成点：{integration_points}",
+          "multiSelect": false,
+          "dynamic": true,
+          "options": [
+            { "label": "干净，耦合合理 (recommended)", "description": "新代码通过清晰的接口与旧系统交互，没有不合理的依赖" },
+            { "label": "基本干净，个别耦合可优化", "description": "有一两处可以解耦，但不影响整体架构" },
+            { "label": "耦合偏紧，需要重构接口", "description": "新老代码之间的交互方式不够清晰，后续会成为维护负担" },
+            { "label": "应该完全独立", "description": "新功能应该是独立模块，不应该与现有系统共享内部状态" }
+          ]
+        },
+        "g4": {
+          "header": "约束发现",
+          "question": "G4. 实现过程中发现的约束和边界条件是否被充分记录？\n\n发现的约束：{discovered_constraints}",
+          "multiSelect": false,
+          "dynamic": true,
+          "options": [
+            { "label": "充分记录 (recommended)", "description": "所有发现的限制（如 4 option 上限）已写入文档或代码注释" },
+            { "label": "记录了主要的，遗漏了次要的", "description": "关键约束有记录，但一些边缘条件没有显式标注" },
+            { "label": "记录不足，靠记忆", "description": "约束只在对话中提到，没有写入任何持久化的位置" },
+            { "label": "还没发现约束", "description": "本轮改动较简单，没有遇到值得记录的平台限制" }
+          ]
+        },
+        "g5": {
+          "header": "命名与接口",
+          "question": "G5. 新增的命名和 CLI 接口是否自然？\n\n新增接口：{new_interfaces}",
+          "multiSelect": false,
+          "dynamic": true,
+          "options": [
+            { "label": "自然，符合直觉 (recommended)", "description": "文件名、函数名、CLI 参数名都很好理解和使用" },
+            { "label": "有个别命名需要调整", "description": "大部分OK，但一两个名字容易引起歧义或不够精确" },
+            { "label": "命名风格不一致", "description": "新接口的命名风格与现有代码的约定有冲突" },
+            { "label": "接口设计可以更好", "description": "不是命名问题，而是参数结构或调用方式本身不够直观" }
+          ]
+        },
+        "g6": {
+          "header": "缺失vs过度",
+          "question": "G6. 回头看 human-loop-design.md 的设计意图，哪些实现了、哪些还没做？\n\n已实现：{implemented}\n未实现：{not_implemented}",
+          "multiSelect": false,
+          "dynamic": true,
+          "options": [
+            { "label": "实现刚好覆盖设计意图 (recommended)", "description": "该做的都做了，没做的确实应该推迟" },
+            { "label": "做多了，有些功能可以砍掉", "description": "实现超出了设计文档的范围，有些是过度工程" },
+            { "label": "少了关键功能，需要补上", "description": "设计文档中的重要意图被遗漏了，需要在下轮补上" },
+            { "label": "设计和实现偏离较大", "description": "实际实现的方向与设计文档的意图有显著出入" }
+          ]
+        },
+        "g7": {
+          "header": "测试覆盖",
+          "question": "G7. 本轮 {test_count} 个测试相关文件有变更。测试覆盖是否跟上了代码改动？\n\n变更的测试文件：{test_files_changed}",
+          "multiSelect": false,
+          "dynamic": true,
+          "options": [
+            { "label": "测试覆盖充分 (recommended)", "description": "新增和修改的代码都有对应的测试更新" },
+            { "label": "部分覆盖，有遗漏", "description": "主要路径有测试，但边界条件或错误路径没有覆盖" },
+            { "label": "测试未更新", "description": "代码改了但测试没动，或者根本没有测试文件变更" },
+            { "label": "本轮不需要测试变更", "description": "纯配置/文档改动，不需要额外测试" }
+          ]
+        },
+        "g8": {
+          "header": "依赖变更",
+          "question": "G8. 本轮 {dep_count} 个依赖相关文件有变更。依赖面是否受控？\n\n变更的依赖文件：{dep_files_changed}",
+          "multiSelect": false,
+          "dynamic": true,
+          "options": [
+            { "label": "依赖面受控 (recommended)", "description": "没有新增依赖，或新增的依赖是必要且轻量的" },
+            { "label": "新增了依赖，需要审视", "description": "新增的依赖有必要性，但应该确认没有更轻量的替代方案" },
+            { "label": "依赖有安全风险", "description": "新增或变更的依赖涉及认证、网络、文件系统等敏感面" },
+            { "label": "本轮无依赖变更", "description": "没有 package.json / requirements 等依赖文件的改动" }
+          ]
+        },
+        "g9": {
+          "header": "安全面",
+          "question": "G9. 本轮 {sec_count} 个安全相关文件有变更。变更是否引入了新的攻击面？\n\n安全敏感文件：{sec_files_changed}",
+          "multiSelect": false,
+          "dynamic": true,
+          "options": [
+            { "label": "安全面无变化 (recommended)", "description": "没有新增认证、密钥、配置等安全敏感路径" },
+            { "label": "有变更但风险可控", "description": "安全文件的改动是必要的，已确认不会扩大攻击面" },
+            { "label": "需要安全审查", "description": "变更涉及密钥存储、认证流程或权限控制，应仔细审查" },
+            { "label": "本轮无安全文件变更", "description": "没有触及安全敏感代码路径" }
+          ]
+        }
+      }
+    }
+  }
+}
