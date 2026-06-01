@@ -29,12 +29,16 @@ python skills/traj/scripts/generate_traj.py \
   --input ~/.claude/projects/<project>/<session>.jsonl \
   --output traj.html
 
-# 生成当前迭代的反馈问卷
+# 终端交互式 QA（主要反馈路径）
+python skills/survey/scripts/probe-diff.py          # 状态探测，驱动 diff-aware 问题
+python skills/survey/scripts/archive-auq-answers.py  # 归档 QA 答案到 .metaharness/
+
+# 生成 HTML 问卷（异步备用）
 python skills/survey/scripts/generate_survey.py \
-  --version v0.1.0 \
+  --type qa \
   --output survey.html
 
-# 开发服务器（支持 POST 提交反馈）
+# 开发服务器（POST 提交反馈）
 python skills/survey/scripts/archive_feedback.py 8767
 ```
 
@@ -66,19 +70,21 @@ python skills/survey/scripts/archive_feedback.py 8767
 
 | Skill | 描述 |
 |---|---|
-| **traj-display** | Claude Code 会话轨迹可视化 — TOC 操作标签、Turn 折叠、Block 级高亮 |
-| **human-loop** | Meta-Harness 人机反馈问卷 — 10 题、5 分钟、交互式 HTML、POST 写入文件系统 |
-| **eval-dashboard** | 评估仪表板模板，使用 Anthropic Design System |
-| **design-system** | 规范 CSS 令牌（颜色、字体、间距），统一所有 HTML 输出 |
+| **traj** | Claude Code 会话轨迹可视化 — TOC 导航、Turn 折叠、颜色编码 Block、Skill 使用高亮 |
+| **survey** | Human-loop QA — 终端交互式问答（27 题、7 节），通过 Claude 的 AskUserQuestion 工具驱动，HTML 表单作为异步备用 |
+| **metric** | 评估指标仪表板模板 |
 
 ---
 
-## 评估 — v0.2.0
+## 评估 — v0.3.0
 
 ```
-.metaharness/v0.2.0/
+.metaharness/v0.3.0/
+  inputs/
+    qa-survey-*.json        ← 27 题完整 QA 答案（human-loop 终端交互式）
   outputs/
-    traj-79283bb1.html  ← 当前 session 轨迹
+    traj-378bb48b.html      ← 发布 session 轨迹 (12 turns, 906 records)
+  plan-v0.4.0.json          ← 基于 QA 反馈的下版本计划
 ```
 
 ---

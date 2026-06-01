@@ -29,12 +29,16 @@ python skills/traj/scripts/generate_traj.py \
   --input ~/.claude/projects/<project>/<session>.jsonl \
   --output traj.html
 
-# Generate survey for the current iteration
+# Run terminal-interactive QA (primary feedback path)
+python skills/survey/scripts/probe-diff.py          # state probe for diff-aware questions
+python skills/survey/scripts/archive-auq-answers.py  # archive QA answers to .metaharness/
+
+# Generate HTML survey (async fallback)
 python skills/survey/scripts/generate_survey.py \
-  --version v0.1.0 \
+  --type qa \
   --output survey.html
 
-# Dev server (with POST feedback endpoint)
+# Dev server (POST feedback endpoint)
 python skills/survey/scripts/archive_feedback.py 8767
 ```
 
@@ -68,19 +72,21 @@ python skills/survey/scripts/archive_feedback.py 8767
 
 | Skill | Description |
 |---|---|
-| **traj-display** | Claude Code session trajectory visualizer — TOC with action labels, turn-based folding, block-level highlight |
-| **human-loop** | Meta-Harness feedback survey — 10 questions, 5 min, interactive HTML, POST to filesystem |
-| **eval-dashboard** | Evaluation dashboard templates with Anthropic Design System |
-| **design-system** | Canonical CSS tokens (colors, typography, spacing) for all HTML output |
+| **traj** | Claude Code session trajectory visualizer — TOC, turn folding, color-coded blocks, skill usage highlighting |
+| **survey** | Human-loop QA — terminal-interactive via Claude's AskUserQuestion (27 questions, 7 sections), HTML forms as async fallback |
+| **metric** | Evaluation metrics dashboard templates |
 
 ---
 
-## Eval — v0.2.0
+## Eval — v0.3.0
 
 ```
-.metaharness/v0.2.0/
+.metaharness/v0.3.0/
+  inputs/
+    qa-survey-*.json        ← 27-question full-mode QA (human-loop terminal AUQ)
   outputs/
-    traj-79283bb1.html  ← current session trajectory
+    traj-378bb48b.html      ← release session trajectory (12 turns, 906 records)
+  plan-v0.4.0.json          ← next-version plan from QA feedback
 ```
 
 ---

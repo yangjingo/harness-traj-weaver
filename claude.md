@@ -20,3 +20,14 @@ When cutting a new version release:
 
 - Move `[Unreleased]` entries to a new dated version section (e.g., `## [0.1.0] — 2026-05-23`)
 - Ensure both readme.md and readme-zh.md reflect the new version
+
+## Skill Routing
+
+When the user's request matches an available skill, invoke it via the Skill tool.
+When in doubt, invoke the skill.
+
+Key routing rules:
+- Generate trajectory / visualize session → invoke /traj
+- QA / evaluate output / "does this look good" → invoke /survey (human-loop mode)
+- Review skill output quality → invoke /survey (human-loop mode)
+- Collect feedback after iteration → invoke /survey (human-loop mode)

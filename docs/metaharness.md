@@ -2,7 +2,8 @@
 
 ## Paradigm
 
-Meta-Harness is a **self-improving outer loop** where an Agent proposes code, a Harness evaluates it, and results flow back into the filesystem for the next cycle. Four principles govern every iteration:
+Meta-Harness is a **self-improving outer loop** where an Agent proposes code, a
+Harness evaluates it, and results flow back into the filesystem for the next cycle.
 
 | # | Principle | What it means |
 |---|---|---|
@@ -14,228 +15,153 @@ Meta-Harness is a **self-improving outer loop** where an Agent proposes code, a 
 ## The Loop
 
 ```
-                         +-------------------+
-                         |   Filesystem      |
-                         |   (.cache/evals)  |<-----------------------------+
-                         +--------+----------+                              |
-                                  |                                         |
-                         (3) Store all Logs                                 |
-                       (traces, candidates,                                 |
-                        feedback, reviews)                                  |
-                                  |                                         |
-                                  v                                         |
-    +-----------------------------+-----------------------------------+     |
-    |                             |                                   |     |
-    |  +------------------+  +------------------+  +----------------+ |     |
-    |  | Proposed Code    |  | Reasoning Traces |  | Eval Scores    | |     |
-    |  | (diffs, commits) |  | (JSONL sessions) |  | (review dash)  | |     |
-    |  +--------+---------+  +--------+---------+  +-------+--------+ |     |
-    |           |                     |                    |          |     |
-    +-----------+---------------------+--------------------+----------+     |
-                |                     |                    |                |
-                | (1) Propose         | Read               | Feedback       |
-                v                     v                    |                |
-    +-----------+----------+  +-------+--------+          |                |
-    | Harness + LLM        |  | traj           |          |                |
-    | (Claude Code)        |  | Trace Visualize|<---------+                |
-    +-----------+----------+  +----------------+                           |
-                |                                                          |
-                v                                                          |
-    +-----------+----------+                                               |
-    | Tasks DB             |                                               |
-    | (Eval benchmarks)   |                                               |
-    +-----------+----------+                                               |
-                |                                                          |
-                | (2) Evaluate                                             |
-                v                                                          |
-    +-----------+----------+                                               |
-    | metric               |                                               |
-    | Code Review Dashboard|                                               |
-    | (Karpathy 4 Principles)                                              |
-    +-----------+----------+                                               |
-                |                                                          |
-                v                                                          |
-    +-----------+----------+                                               |
-    | survey               |                                               |
-    | Human Feedback Loop  |----------------------------------------------+
-    | (QA + Human-Loop)    |
-    +----------------------+
+  ┌──────────┐     ┌──────────┐     ┌──────────┐     ┌──────────┐
+  │ Observe  │ ──→ │ Diagnose │ ──→ │ Propose  │ ──→ │ Evaluate │ ──→
+  └──────────┘     └──────────┘     └──────────┘     └──────────┘
+       ↑                                                  │
+       │            .metaharness/v{version}/              │
+       │        inputs/          outputs/                 │
+       │    qa-*.json        traj-*.html                  │
+       │    session.jsonl    plan-v{next}.json            │
+       └──────────────────────────────────────────────────┘
 ```
+
+1. **Observe** — Read prior execution traces and QA feedback from `.metaharness/`
+2. **Diagnose** — Trace-level reasoning on raw JSONL sessions and code diffs
+3. **Propose** — Generate targeted edits based on trace evidence, not aggregate scores
+4. **Evaluate** — Human-loop QA in terminal via Claude's AskUserQuestion
+5. **Iterate** — Answers archived, plan generated, next cycle begins
 
 ## Skill Mapping
 
-Each step of the loop is powered by a dedicated skill under `skills/`:
-
 ### 1. Observe → `traj`
 
-Reads Claude Code session JSONL and generates a self-contained `traj.html` — an interactive timeline view with TOC navigation, thinking blocks, tool call tracking, and skill usage highlighting.
+Reads Claude Code session JSONL and generates `traj.html` — interactive timeline with
+TOC navigation, turn folding, color-coded blocks, and skill usage highlighting.
 
-```
+```bash
 python skills/traj/scripts/generate_traj.py \
   --input ~/.claude/projects/<project>/<session>.jsonl \
-  --output meta-harness-traj.html
+  --output traj.html
 ```
 
-**Supports Principle #2 (Trace-Level Reasoning):** Instead of compressed summaries, the trajectory view exposes raw conversation structure — thinking blocks, tool inputs/outputs, and skill interactions — so failures can be diagnosed directly from execution traces.
+Post-execution triggers human-loop QA to collect feedback on the trajectory output.
 
 ### 2. Evaluate → `metric`
 
-Reads a git diff and evaluates every change against the four **Karpathy Principles**:
+Reads a git diff and evaluates every change against four Karpathy principles: Think
+Before Coding, Simplicity First, Surgical Changes, Goal-Driven Execution. Generates
+`dashboard.html` with per-principle scores and issue flags.
 
-| P# | Principle | Checks |
-|---|---|---|
-| P1 | Think Before Coding | Assumptions stated? Alternatives considered? |
-| P2 | Simplicity First | No over-engineering? Can it be shorter? |
-| P3 | Surgical Changes | Every line traces to the goal? No drive-by edits? |
-| P4 | Goal-Driven Execution | Verifiable completion criteria? |
-
-```
-python skills/metric/scripts/generate_dashboard.py \
-  --diff HEAD --goal "Add user auth" --output review.html
+```bash
+python skills/metric/scripts/generate_dashboard.py --diff HEAD
 ```
 
-Generates a self-contained `dashboard.html` with per-principle scores, per-file breakdowns, and auto-detected issues with suggested fixes.
-
-**Supports Principle #3 (Search-Set Feedback):** The review dashboard surfaces code quality issues before they reach evaluation, preventing bad patterns from propagating.
+Post-execution triggers human-loop QA.
 
 ### 3. Feedback → `survey`
 
-Generates structured HTML-form questionnaires with embedded git history, CHANGELOG, and ROADMAP context. Two types:
+Terminal-interactive QA via Claude's `AskUserQuestion`. After any skill generates
+output, Claude proactively starts a structured Q&A session.
 
-| Type | Target | Questions |
-|---|---|---|
-| `qa` | Individual skill UI/UX | 22 questions across 6 sections |
-| `human-loop` | Meta-Harness paradigm | 19 questions across 4 parts |
+- **27 questions** across 7 sections (A-G)
+- **Quick mode**: 8 questions, ~3 minutes
+- **Full mode**: 27 questions, ~10 minutes
+- **Section G**: 9 diff-aware questions driven by `probe-diff.py` state probe
+- **Archive**: answers written to `.metaharness/v{version}/inputs/qa-*.json`
+
+```bash
+python skills/survey/scripts/probe-diff.py           # state probe
+python skills/survey/scripts/archive-auq-answers.py   # archive answers
+```
+
+HTML forms (`qa-survey.html`, `human-loop.html`) are retained as async fallback.
+
+### 4. Visual Language → `DESIGN.md` + `UX.md`
+
+Design is split into two layers:
+
+| File | Layer | Contents |
+|------|-------|----------|
+| `DESIGN.md` | Philosophy | Color palette, typography, spacing, rhythm rules |
+| `UX.md` | Implementation | Component patterns, animations, layout conventions |
+
+CSS tokens live in `skills/traj/reference/design-tokens.css`. Templates inline
+tokens in `<style>` — no `@import`, self-contained HTML.
+
+See `docs/design-system.md` for the full rationale.
+
+## Human-Loop QA Flow
 
 ```
-python skills/survey/scripts/generate_survey.py --type qa --skill traj --version v0.1.0
-python skills/survey/scripts/generate_survey.py --type human-loop --version v0.1.0
-```
-
-Each survey auto-injects:
-- `git log --oneline -15` — recent commits
-- `git log -5` — detailed commit messages
-- `CHANGELOG.md` — project version history
-- `ROADMAP.md` — future direction
-
-**Supports Principle #3 & #4:** Human feedback collected via surveys drives the next iteration's priorities, closing the loop from evaluation back to proposal.
-
-### 4. Visual Language → `theme`
-
-Canonical CSS design tokens (`reference/design-tokens.css`) — color palette, typography scale, spacing rhythm — used by all skills to produce visually consistent, self-contained HTML output. Inspired by the Anthropic brand: warm cream canvas, coral accents, dark sidebar, serif headings.
-
-## The Complete Cycle
-
-```
-Iteration N:
-  1. Agent proposes changes via Claude Code
-  2. Session JSONL is captured → traj visualizes execution traces
-  3. git diff is reviewed → metric scores against Karpathy principles
-  4. survey collects human feedback (with git log + CHANGELOG context)
-  5. Results stored in evals/v{N}/outputs/
-  6. Agent reads feedback, CHANGELOG, and traces from filesystem
-  7. Iteration N+1 begins, informed by the full history
+Skill completes → output artifact ready
+  │
+  ├─ Claude detects output → entry gate AUQ: "现在评估 / 稍后 / 跳过?"
+  │
+  ├─ Mode: quick (8q / ~3min) or full (27q / ~10min)
+  │
+  ├─ Section-by-section: A→B→C→D→E→F→G
+  │     A-C: output quality (visual, navigation, content)
+  │     D:   data & stats
+  │     E:   missing features (multi-select)
+  │     F:   overall rating
+  │     G:   diff-aware code review (9 dynamic questions)
+  │
+  ├─ Interrupt/resume via .metaharness/qa-state.json
+  │
+  └─ Archive → .metaharness/v{version}/inputs/
+       Plan generated → .metaharness/v{version}/plan-v{next}.json
 ```
 
 ## Filesystem Layout
 
 ```
-.cache/
-  traces/       — execution traces (JSONL sessions)
-  candidates/   — candidate harness outputs
-  feedback/     — search-set evaluation results
-
-evals/
-  v0.1.0/
+.metaharness/
+  v{version}/
     inputs/
-      session.jsonl                 — archived session for traj demo
+      qa-survey-*.json       ← human-loop QA answers
+      qa-survey-*.txt        ← human-readable summaries
+      session-*.jsonl         ← archived Claude Code sessions
     outputs/
-      meta-harness-traj.html        — generated trajectory HTML
-      meta-harness-survey.html      — human feedback survey
-      dashboard.html                — code review results
-
-CHANGELOG.md    — project version history
-ROADMAP.md      — future direction (optional, surfaced in surveys)
+      traj-*.html             ← session trajectory visualizations
+      commit-*.json           ← per-commit artifacts
+      plan-v{next}.json       ← next-version plan from QA feedback
+    plan-trigger.json         ← written by post-commit
+    qa-state.json             ← QA interrupt/resume state
 ```
 
-## Principles in Action
+## Hook Integration
 
-The four Meta-Harness principles aren't just abstract — they're enforced by the skills:
-
-| Principle | Enforced By | How |
-|---|---|---|
-| Filesystem as Memory | All skills | Every artifact lands in `.cache/` or `evals/` — nothing in a database |
-| Trace-Level Reasoning | `traj` | Raw JSONL → interactive HTML, not compressed summaries |
-| Search-Set Feedback | `metric` + `survey` | Review dashboards + human surveys feed the loop, never test-set data |
-| Self-Improving | The loop itself | Each iteration leaves richer traces → better diagnosis → better proposals |
-
-## Hook: Pre-Commit Gate
-
-The `pre-commit` hook closes the loop automatically — it fires before every `git commit` and links each commit back to the Claude Code session that produced it.
-
-### What it does
+### pre-commit
 
 ```
 git commit
   │
-  ├─ 1. Find current Claude Code session JSONL
-  │     (~/.claude/projects/<project>/<latest>.jsonl)
-  │
-  ├─ 2. Generate traj.html from the session trace
-  │     → .cache/feedback/traj-<session-id>.html
-  │
-  ├─ 3. Run metric review (Karpathy 4 principles) on staged changes
-  │     → .cache/feedback/review-<timestamp>.html
-  │
-  ├─ 4. Show terminal summary: score, issues, file paths
-  │
-  └─ 5. Block commit if score < threshold (strict mode)
+  ├─ 1. Archive current session JSONL → .metaharness/v{version}/inputs/
+  ├─ 2. Generate traj.html from session trace
+  ├─ 3. Trigger human-loop QA in terminal (AskUserQuestion)
+  │      entry gate → mode → A-G sections → archive
+  └─ 4. Write plan trigger for next iteration
 ```
 
-### Install
+### post-commit
+
+After commit lands: archives session, writes `.metaharness/plan-trigger.json`.
+
+### pre-push
+
+Same terminal QA flow for `git push`. Session archived, human-loop runs, plan updated.
 
 ```bash
-cp hooks/pre-commit .git/hooks/pre-commit
-chmod +x .git/hooks/pre-commit
+# Install hooks
+bash scripts/install.sh
 ```
 
-### Configure
+## Principles in Action
 
-```bash
-# Set minimum score to allow commit (default: 2.5)
-git config metaharness.threshold 3.0
-
-# Block commits below threshold (default: false)
-git config metaharness.strict true
-
-# Skip hook for one commit
-git config metaharness.skip true
-git commit -m "emergency fix"
-git config --unset metaharness.skip
-```
-
-### What the developer sees
-
-```
-=== Meta-Harness Pre-Commit Review ===
-  Files reviewed: 3
-  Issues found:   4
-  Overall score:  3.8/5 (NEEDS WORK)
-
-  P1 Think Before Coding  ████████░░ 4/5
-  P2 Simplicity First      ██████░░░░ 3/5
-  P3 Surgical Changes      ████████░░ 4/5
-  P4 Goal-Driven Execution ████████░░ 4/5
-
-  traj:    .cache/feedback/traj-f615685c.html
-  metric:  .cache/feedback/review-20260525-184100.html
-  session: f615685c-0a69-4354-90db-b2fbb68c038b.jsonl
-```
-
-### Why session matters
-
-Every commit is the output of a Claude Code session. By linking the session JSONL, the hook ensures:
-
-- **Traceability**: Any commit can be traced back to the exact conversation that produced it
-- **Diagnosis**: If a commit introduces a bug, replay the session trace to see what the agent was thinking
-- **Feedback**: The session ID becomes part of the review artifact, closing the loop from proposal → trace → review → feedback
+| Principle | Enforced By | How |
+|-----------|-------------|-----|
+| Filesystem as Memory | `.metaharness/` | Every artifact on disk — no database |
+| Trace-Level Reasoning | `traj` | Raw JSONL → interactive HTML, not summaries |
+| Search-Set Feedback | `survey` | Terminal AUQ → structured JSON → next iteration |
+| Self-Improving | The loop | Each iteration leaves richer traces → better proposals |
