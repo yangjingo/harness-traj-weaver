@@ -111,17 +111,10 @@ def main():
     git_log = git_log_oneline()
     git_detail = git_log_detail()
     git_diffstat = git_diff_stat()
-    changelog_raw = load_file('CHANGELOG.md')
-    roadmap_raw = load_file('ROADMAP.md')
+    changelog_raw = load_file('changelog.md')
 
     # Build changelog HTML summary
     changelog_html = format_changelog_html(changelog_raw)
-
-    # Build roadmap HTML (plain text in <pre>)
-    if roadmap_raw.startswith('('):
-        roadmap_html = f'<p style="color:var(--muted)">{roadmap_raw}</p>'
-    else:
-        roadmap_html = f'<pre class="roadmap-text">{roadmap_raw}</pre>'
 
     template = Template(load_template(TEMPLATES[args.type]))
 
@@ -133,7 +126,6 @@ def main():
             GIT_DETAIL=git_detail,
             GIT_DIFFSTAT=git_diffstat,
             CHANGELOG_HTML=changelog_html,
-            ROADMAP_HTML=roadmap_html,
             TODAY=datetime.now().strftime('%Y-%m-%d %H:%M'),
         )
         default_output = f'{args.skill}-qa-survey.html'
@@ -144,7 +136,6 @@ def main():
             GIT_DETAIL=git_detail,
             GIT_DIFFSTAT=git_diffstat,
             CHANGELOG_HTML=changelog_html,
-            ROADMAP_HTML=roadmap_html,
             TODAY=datetime.now().strftime('%Y-%m-%d %H:%M'),
         )
         default_output = 'meta-harness-survey.html'
@@ -157,7 +148,6 @@ def main():
     print(f'Generated: {output} (type={args.type}, version={args.version})')
     print(f'  Git log:     {len(git_log.splitlines())} commits')
     print(f'  Changelog:   {"found" if not changelog_raw.startswith("(") else "missing"}')
-    print(f'  Roadmap:     {"found" if not roadmap_raw.startswith("(") else "missing"}')
 
 
 if __name__ == '__main__':

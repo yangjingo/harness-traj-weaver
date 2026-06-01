@@ -1,6 +1,6 @@
 ---
 name: metric
-version: "0.1.0"
+version: "0.3.0"
 description: Meta-Harness evaluation skill — code review against Karpathy principles and interactive HTML dashboard generation. Evaluates code changes across four dimensions: Think Before Coding, Simplicity First, Surgical Changes, Goal-Driven Execution.
 ---
 
@@ -48,7 +48,7 @@ Each flagged issue includes the file, line range, principle violated, and a sugg
 
 ## Design Tokens
 
-Uses the theme tokens (see `../theme/reference/design-tokens.css`).
+Color palette and typography: see `DESIGN.md`. CSS tokens are inlined in templates.
 
 Key tokens:
 | Token | Hex | Usage |
@@ -83,3 +83,12 @@ python skills/metric/scripts/generate_dashboard.py --diff HEAD --output review.h
 ## Meta-Harness Integration
 
 This skill embodies Meta-Harness Principle #3 (Search-set feedback). The review dashboard surfaces code quality issues before they reach evaluation, preventing bad patterns from propagating into the search set.
+
+## Post-Execution: Human-Loop QA
+
+After generating a dashboard HTML file, trigger the human-loop QA to collect structured
+feedback on the review output quality. Follow the same pattern as `skills/traj/skill.md`:
+
+1. Announce completion: which diff/files were reviewed, output path, scores summary.
+2. Invoke the survey skill's human-loop workflow from `skills/survey/skill.md`.
+3. Follow: entry gate → mode selection → section-by-section QA → archive.

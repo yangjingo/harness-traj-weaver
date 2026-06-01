@@ -221,16 +221,6 @@ code {
   padding: var(--sp-xs) 0 !important;
   border-bottom: 1px solid rgba(255,255,255,.1) !important;
 }
-.roadmap-text {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  line-height: 1.5;
-  color: #a09d96;
-  white-space: pre-wrap;
-  max-height: 200px;
-  overflow-y: auto;
-  margin: 0;
-}
 .ctx-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -262,17 +252,10 @@ code {
     <pre class="git-detail">$GIT_DETAIL</pre>
   </div>
 </div>
-<div class="ctx-grid">
-  <div class="ctx-block">
-    <div class="ctx-label">Project History</div>
-    <h3>CHANGELOG</h3>
-    $CHANGELOG_HTML
-  </div>
-  <div class="ctx-block">
-    <div class="ctx-label">Future Direction</div>
-    <h3>ROADMAP</h3>
-    $ROADMAP_HTML
-  </div>
+<div class="ctx-block">
+  <div class="ctx-label">Project History</div>
+  <h3>CHANGELOG</h3>
+  $CHANGELOG_HTML
 </div>
 
 <!-- A. Overall Visual -->
@@ -480,7 +463,7 @@ code {
 </div>
 
 <div class="footer">
-  本问卷结果将归档至 <code>evals/$VERSION/inputs/</code>，作为下一迭代的重要输入。感谢你的反馈！
+  本问卷结果将归档至 <code>.metaharness/$VERSION/inputs/</code>，作为下一迭代的重要输入。感谢你的反馈！
 </div>
 
 </body>

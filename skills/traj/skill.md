@@ -1,6 +1,6 @@
 ---
 name: traj
-version: "0.1.0"
+version: "0.3.0"
 description: Claude Code session trajectory visualization. Reads JSONL session files and generates interactive HTML timeline views with TOC navigation, thinking blocks, tool call tracking, and skill usage highlighting. Designed for Meta-Harness trace-level reasoning.
 ---
 
@@ -53,7 +53,7 @@ Input is Claude Code JSONL where each line is a JSON object:
 
 ## Color Tokens
 
-From the theme tokens (see `../theme/reference/design-tokens.css`):
+From the design tokens (see `DESIGN.md`; CSS: `reference/design-tokens.css`):
 
 | Token | Hex | Usage |
 |---|---|---|
@@ -62,3 +62,21 @@ From the theme tokens (see `../theme/reference/design-tokens.css`):
 | `primary` | `#cc785c` | Coral — user turns, skill-exec blocks |
 | `accent-teal` | `#5db8a6` | Assistant turns, skill calls |
 | `accent-amber` | `#e8a55a` | Tool calls, skill-reads |
+
+## Post-Execution: Human-Loop QA
+
+After generating a trajectory HTML file, **automatically trigger the human-loop QA**
+to collect structured feedback on the output quality.
+
+1. Announce completion: which session was processed, output file path, key stats
+   (turn count, skill calls, thinking blocks).
+
+2. Invoke the survey skill's human-loop workflow:
+   - Read `skills/survey/skill.md` for the full workflow
+   - Load questions from `skills/survey/reference/auq-questions.json`
+   - Start with the entry gate: "现在评估 / 稍后 / 跳过？"
+
+3. Follow the workflow through mode selection → section-by-section QA → archive.
+
+This closes the feedback loop: each trajectory generation becomes an eval input
+for the next iteration of the traj skill itself.

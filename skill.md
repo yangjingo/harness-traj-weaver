@@ -25,16 +25,15 @@ description: Meta-Harness skill — minimal outer loop that gives the proposer u
 ```
 .metaharness/
   v{version}/
-    inputs/              — archived session JSONL (via $CLAUDE_CODE_SESSION_ID)
-    outputs/             — generated artifacts (commit-*.json, human-loop-*.html, traj-*.html, feedback-*.json)
+    inputs/              — QA answers (qa-survey-*.json/txt), session JSONL
+    outputs/             — traj-*.html, commit-*.json, plan-v{next}.json
   plan-trigger.json      — written by post-commit to trigger the next iteration cycle
+  qa-state.json          — human-loop QA interrupt/resume state
 ```
 
-The outer loop stays minimal. No scaffolding, no memory database — just the filesystem. Each version directory accumulates all harness artifacts for that release. The human-loop survey covers both skill-level UI/UX and Meta-Harness paradigm assessment.
+The outer loop stays minimal. No scaffolding, no memory database — just the filesystem. Each version directory accumulates all harness artifacts for that release.
 
 ## Hook Integration
-
-This skill is designed to be triggered by git hooks — not run standalone scripts. Hooks invoke the skill, which then runs the full Observe→Diagnose→Propose→Evaluate loop.
 
 ### Commit Hook (`pre-commit`)
 
@@ -42,23 +41,29 @@ This skill is designed to be triggered by git hooks — not run standalone scrip
 git commit
     │
     ▼
-hook fires → skill triggered → Observe → Diagnose → Propose → Evaluate
-    │                                                              │
-    │         human-loop.html opened in browser ◄──────────────────┘
+pre-commit hook → skill triggered → Observe → Diagnose → Propose → Evaluate
     │
-    ├── Human clicks "GO"  → commit proceeds
-    └── Human clicks "NO-GO" → commit blocked
+    ├── traj generated (session trajectory HTML)
+    ├── human-loop QA starts in terminal (AskUserQuestion)
+    │     ├── entry gate: "现在评估 / 稍后 / 跳过?"
+    │     ├── mode: quick (8q) / full (27q)
+    │     └── section-by-section A→B→C→D→E→F→G
+    ├── answers archived → .metaharness/v{version}/inputs/
+    └── plan generated → .metaharness/v{version}/plan-v{next}.json
 ```
 
-The skill generates the review, but the HUMAN gates the commit. Each commit auto-archives the current session via `$CLAUDE_CODE_SESSION_ID` into `.metaharness/v{version}/inputs/session-{id}.jsonl`. Version is detected from the latest entry in `changelog.md`.
+Terminal AUQ replaced browser-based gating in v0.3.0. The human answers Claude's
+questions directly in the terminal — no browser, no HTML form, no context switch.
 
 ### Push Hook (`pre-push`)
 
-Same human-in-the-loop flow for `git push` — session archived, human-loop generated, human gates.
+Same terminal QA flow for `git push`. Session archived, human-loop runs, plan updated.
 
-### Post-Commit Monitoring
+### Post-Commit
 
-After commit lands, `post-commit` hook starts the archive server, opens human-loop in browser, and monitors for human feedback. On GO, it signals readiness for the next harness iteration.
+After commit lands, `post-commit` hook archives the session JSONL to
+`.metaharness/v{version}/inputs/` and writes `.metaharness/plan-trigger.json`
+to signal readiness for the next iteration.
 
 ### Installation
 

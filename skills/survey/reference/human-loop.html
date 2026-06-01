@@ -209,16 +209,6 @@ strong { color: var(--ink); }
   padding: var(--sp-xs) 0 !important;
   border-bottom: 1px solid rgba(255,255,255,.1) !important;
 }
-.roadmap-text {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  line-height: 1.5;
-  color: #a09d96;
-  white-space: pre-wrap;
-  max-height: 200px;
-  overflow-y: auto;
-  margin: 0;
-}
 .ctx-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -250,17 +240,10 @@ strong { color: var(--ink); }
     <pre class="git-detail">$GIT_DETAIL</pre>
   </div>
 </div>
-<div class="ctx-grid">
-  <div class="ctx-block">
-    <div class="ctx-label">Project History</div>
-    <h3>CHANGELOG</h3>
-    $CHANGELOG_HTML
-  </div>
-  <div class="ctx-block">
-    <div class="ctx-label">Future Direction</div>
-    <h3>ROADMAP</h3>
-    $ROADMAP_HTML
-  </div>
+<div class="ctx-block">
+  <div class="ctx-label">Project History</div>
+  <h3>CHANGELOG</h3>
+  $CHANGELOG_HTML
 </div>
 
 <!-- Part 1: traj-display Visual -->
@@ -353,7 +336,7 @@ strong { color: var(--ink); }
 <h2>Part 3: Meta-Harness 范式</h2>
 
 <div class="question">
-  <h3>3.1 <strong>Filesystem as Memory</strong> — <code>.cache/</code> + <code>evals/</code> 的文件系统布局是否足够支撑 find → diagnose → propose 流程？</h3>
+  <h3>3.1 <strong>Filesystem as Memory</strong> — <code>.metaharness/</code> 的文件系统布局是否足够支撑 Observe → Diagnose → Propose → Evaluate 流程？</h3>
   <div class="options">
     <div class="option"><input type="radio" name="p3q1" id="p3q1a" value="A"><label for="p3q1a">A. 足够，不需要额外机制</label></div>
     <div class="option"><input type="radio" name="p3q1" id="p3q1b" value="B"><label for="p3q1b">B. 基本够，偶尔需要搜索/索引</label></div>
@@ -450,7 +433,7 @@ strong { color: var(--ink); }
 </div>
 
 <div class="footer">
-  本问卷归档至 <code>evals/$VERSION/outputs/meta-harness-survey.html</code>，作为下一迭代的核心输入。
+  本问卷归档至 <code>.metaharness/$VERSION/outputs/</code>，作为下一迭代的核心输入。
 </div>
 
 </body>
