@@ -10,7 +10,6 @@
 <style>
 :root {
   --canvas: #faf9f5;
-  --surface-soft: #f5f0e8;
   --surface-card: #efe9de;
   --surface-dark: #181715;
   --hairline: #e6dfd8;
@@ -19,14 +18,10 @@
   --muted: #6c6a64;
   --muted-soft: #8e8b82;
   --primary: #cc785c;
-  --primary-active: #a9583e;
   --accent-teal: #5db8a6;
   --accent-amber: #e8a55a;
   --on-dark: #faf9f5;
   --on-dark-soft: #a09d96;
-  --success: #5db872;
-  --error: #c64545;
-  --rounded-md: 8px;
   --rounded-lg: 12px;
   --sp-xs: 8px;
   --sp-sm: 12px;
@@ -44,281 +39,196 @@ body {
   color: var(--body);
   background: var(--canvas);
   overflow: hidden;
-  height: 100vh;
-  width: 100vw;
+  height: 100vh; width: 100vw;
 }
 
-/* Slide container */
 .deck { width: 100%; height: 100%; position: relative; }
 .slide {
-  position: absolute;
-  inset: 0;
-  display: none;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  position: absolute; inset: 0;
+  display: none; flex-direction: column;
+  justify-content: center; align-items: center;
   padding: var(--sp-xxl) 10%;
-  opacity: 0;
-  transition: opacity 0.4s;
+  opacity: 0; transition: opacity .4s;
 }
 .slide.active { display: flex; opacity: 1; }
-
-/* Slide types */
 .slide-dark { background: var(--surface-dark); color: var(--on-dark); }
-.slide-dark h1, .slide-dark h2, .slide-dark h3 { color: var(--on-dark); }
-.slide-dark p, .slide-dark li { color: var(--on-dark-soft); }
+.slide-dark h1,.slide-dark h2,.slide-dark h3 { color: var(--on-dark); }
+.slide-dark p,.slide-dark li { color: var(--on-dark-soft); }
 .slide-center { text-align: center; }
 .slide-left { text-align: left; align-items: flex-start; }
 
 h1 {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 72px;
-  font-weight: 400;
-  color: var(--ink);
-  letter-spacing: -1.5px;
-  line-height: 1.1;
+  font-size: 72px; font-weight: 400;
+  color: var(--ink); letter-spacing: -1.5px; line-height: 1.1;
 }
 h2 {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 48px;
-  font-weight: 400;
-  color: var(--ink);
-  letter-spacing: -1px;
-  line-height: 1.15;
+  font-size: 48px; font-weight: 400;
+  color: var(--ink); letter-spacing: -1px; line-height: 1.15;
   margin-bottom: var(--sp-lg);
 }
 h3 {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 32px;
-  font-weight: 400;
-  color: var(--ink);
-  margin-bottom: var(--sp-md);
+  font-size: 28px; font-weight: 400;
+  color: var(--ink); margin-bottom: var(--sp-md);
 }
 .subtitle {
-  font-size: 22px;
-  color: var(--muted);
-  font-weight: 400;
-  margin-top: var(--sp-md);
+  font-size: 22px; color: var(--muted); font-weight: 400; margin-top: var(--sp-md);
 }
 .eyebrow {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--primary);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-bottom: var(--sp-sm);
+  font-size: 13px; font-weight: 500; color: var(--primary);
+  letter-spacing: 2px; text-transform: uppercase; margin-bottom: var(--sp-sm);
 }
 
 /* Principles grid */
 .principles {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--sp-lg);
-  width: 100%;
-  max-width: 900px;
-  margin-top: var(--sp-lg);
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: var(--sp-lg); width: 100%; max-width: 900px; margin-top: var(--sp-lg);
 }
 .principle {
-  background: var(--surface-card);
-  border-radius: var(--rounded-lg);
-  padding: var(--sp-xl);
-  border: 1px solid var(--hairline);
-  border-top: 4px solid var(--primary);
+  background: var(--surface-card); border-radius: var(--rounded-lg);
+  padding: var(--sp-xl) var(--sp-lg); border: 1px solid var(--hairline);
+  border-left: 4px solid var(--primary);
+  transition: transform .2s;
 }
+.principle:hover { transform: translateY(-2px); }
 .principle .num {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 48px;
-  color: var(--primary);
-  line-height: 1;
-  margin-bottom: var(--sp-xs);
+  font-size: 48px; color: var(--primary); line-height: 1; margin-bottom: var(--sp-xs);
 }
-.principle h4 { font-size: 20px; color: var(--ink); margin-bottom: var(--sp-xs); }
+.principle h4 { font-size: 20px; color: var(--ink); margin-bottom: var(--sp-sm); }
 .principle p { font-size: 15px; color: var(--muted); line-height: 1.5; }
 
-/* Skill cards */
-.skill-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--sp-md);
-  width: 100%;
-  max-width: 1000px;
-  margin-top: var(--sp-lg);
+/* Dark card variant */
+.slide-dark .principle {
+  background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.1);
 }
-.skill-card {
-  background: var(--surface-card);
-  border-radius: var(--rounded-lg);
-  padding: var(--sp-lg);
-  text-align: center;
-  border: 1px solid var(--hairline);
-}
-.skill-card .icon {
-  font-size: 40px;
-  margin-bottom: var(--sp-sm);
-}
-.skill-card h4 { font-size: 18px; color: var(--ink); margin-bottom: var(--sp-xs); }
-.skill-card p { font-size: 13px; color: var(--muted); line-height: 1.4; }
+.slide-dark .principle h4 { color: var(--on-dark); }
+.slide-dark .principle p { color: var(--on-dark-soft); }
 
-/* Code blocks */
-.code-block {
-  background: #1e1d1a;
-  color: #a09d96;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 14px;
-  line-height: 1.6;
-  padding: var(--sp-lg);
-  border-radius: var(--rounded-lg);
-  white-space: pre-wrap;
-  margin: var(--sp-md) 0;
-  max-width: 800px;
-  width: 100%;
+/* Horizontal flex row for principles */
+.principle-row {
+  display: flex; gap: var(--sp-lg); max-width: 960px; margin-top: var(--sp-lg); width: 100%;
 }
-.code-block .cmd { color: var(--primary); }
-.code-block .arg { color: var(--accent-teal); }
-.code-block .path { color: var(--accent-amber); }
+.principle-row .principle { flex: 1; }
 
 /* Tables */
 .table-wrap { width: 100%; max-width: 900px; margin-top: var(--sp-md); }
 table { width: 100%; border-collapse: collapse; font-size: 15px; }
 th {
-  text-align: left;
-  padding: 10px 14px;
-  font-weight: 500;
-  color: var(--muted);
-  border-bottom: 2px solid var(--hairline);
-  font-size: 13px;
-  letter-spacing: .3px;
-  text-transform: uppercase;
+  text-align: left; padding: 10px 14px; font-weight: 500;
+  color: var(--muted); border-bottom: 2px solid var(--hairline);
+  font-size: 13px; text-transform: uppercase;
 }
-td { padding: 10px 14px; border-bottom: 1px solid var(--hairline-soft); }
-.slide-dark th, .slide-dark td { border-color: rgba(255,255,255,.1); color: var(--on-dark-soft); }
+td { padding: 10px 14px; border-bottom: 1px solid var(--hairline); }
+.slide-dark th,.slide-dark td { border-color: rgba(255,255,255,.1); color: var(--on-dark-soft); }
+
+/* Code blocks */
+.code-block {
+  background: #1e1d1a; color: #a09d96;
+  font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.5;
+  padding: var(--sp-md) var(--sp-lg); border-radius: var(--rounded-lg);
+  white-space: pre-wrap; margin: var(--sp-sm) 0; max-width: 800px; width: 100%;
+}
+.code-block .cmd { color: var(--primary); }
+.code-block .path { color: var(--accent-teal); }
+.code-block .arg { color: var(--accent-amber); }
+
+/* Consecutive code blocks on same slide */
+.code-block + .code-block { margin-top: var(--sp-lg); }
 
 /* Tags */
 .tag {
-  display: inline-block;
-  padding: 3px 10px;
-  border-radius: 9999px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: .5px;
+  display: inline-block; padding: 3px 10px; border-radius: 9999px;
+  font-size: 12px; font-weight: 600;
 }
 .tag-coral { background: var(--primary); color: #fff; }
 .tag-teal { background: #e0f2f1; color: #00796b; }
-.tag-amber { background: #fff8e1; color: #8d6e00; }
-.tag-dark { background: rgba(255,255,255,.1); color: var(--on-dark); }
 
-/* Flow diagram (simplified) */
+/* Flow */
 .flow-row {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-md);
-  flex-wrap: wrap;
-  justify-content: center;
-  margin: var(--sp-lg) 0;
+  display: flex; align-items: center; gap: var(--sp-xs);
+  flex-wrap: wrap; justify-content: center; margin: var(--sp-md) 0;
 }
 .flow-node {
-  padding: var(--sp-md) var(--sp-lg);
-  background: var(--surface-card);
-  border-radius: var(--rounded-lg);
-  border: 1px solid var(--hairline);
-  text-align: center;
-  font-size: 14px;
-  font-weight: 500;
+  padding: 12px 18px; background: var(--surface-card); border-radius: var(--rounded-lg);
+  border: 1px solid var(--hairline); text-align: center;
+  font-size: 13px; font-weight: 500; min-width: 88px;
+  letter-spacing: .5px;
 }
-.flow-node.active { background: var(--primary); color: #fff; border-color: var(--primary); }
-.flow-arrow { color: var(--muted-soft); font-size: 24px; }
+.flow-node.hi { background: var(--primary); color: #fff; border-color: var(--primary); }
+.flow-arrow { color: var(--muted-soft); font-size: 18px; font-weight: 300; }
 
-.code-block .hl { color: var(--primary); font-weight: 500; }
+.slide-dark .flow-node {
+  background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.12); color: var(--on-dark);
+}
+.slide-dark .flow-node.hi { background: var(--primary); color: #fff; border-color: var(--primary); }
+.slide-dark .flow-arrow { color: rgba(255,255,255,.25); }
 
-/* Steps list */
+/* Step list */
 .step-list { list-style: none; text-align: left; max-width: 700px; }
 .step-list li {
-  display: flex;
-  gap: var(--sp-md);
-  padding: var(--sp-sm) 0;
-  font-size: 17px;
-  color: var(--body);
-  align-items: baseline;
+  display: flex; gap: var(--sp-md); padding: var(--sp-sm) 0;
+  font-size: 17px; color: var(--body); align-items: baseline;
 }
 .step-num {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 14px;
-  color: var(--primary);
-  min-width: 28px;
-  font-weight: 500;
+  font-family: 'JetBrains Mono', monospace; font-size: 14px;
+  color: var(--primary); min-width: 28px; font-weight: 500;
 }
+
+/* Skill cards */
+.skill-row {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-lg); width: 100%; max-width: 840px; margin-top: var(--sp-lg);
+}
+.skill-card {
+  background: var(--surface-card); border-radius: var(--rounded-lg);
+  padding: var(--sp-xl) var(--sp-lg); text-align: center;
+  border: 1px solid var(--hairline); border-left: 4px solid var(--primary);
+  transition: transform .2s;
+}
+.skill-card:hover { transform: translateY(-2px); }
+.skill-card .icon { font-size: 36px; margin-bottom: var(--sp-sm); opacity: .85; }
+.skill-card h4 { font-size: 20px; color: var(--ink); margin-bottom: var(--sp-sm); }
+.skill-card p { font-size: 14px; color: var(--muted); line-height: 1.5; }
+
+/* Keypoint */
+.keypoint {
+  font-size: 14px; font-weight: 500; color: var(--primary);
+  max-width: 700px; padding: var(--sp-sm) var(--sp-md);
+  border-left: 3px solid var(--primary);
+  background: rgba(204,120,92,.06);
+  border-radius: 0 var(--rounded-lg) var(--rounded-lg) 0;
+  margin-top: var(--sp-lg);
+  line-height: 1.5;
+}
+.slide-dark .keypoint { color: var(--primary); background: rgba(204,120,92,.12); }
 
 /* Nav */
 .nav {
-  position: fixed;
-  bottom: var(--sp-lg);
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: var(--sp-md);
-  z-index: 100;
+  position: fixed; bottom: var(--sp-lg); left: 50%;
+  transform: translateX(-50%); display: flex; align-items: center;
+  gap: var(--sp-md); z-index: 100;
 }
 .nav-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 1px solid var(--hairline);
-  background: var(--surface-card);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  color: var(--ink);
-  transition: all 0.15s;
+  width: 40px; height: 40px; border-radius: 50%;
+  border: 1px solid var(--hairline); background: var(--surface-card);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: var(--ink); transition: all .15s;
 }
 .nav-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
 .page-num {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 13px;
-  color: var(--muted);
-  min-width: 60px;
-  text-align: center;
+  font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  color: var(--muted); min-width: 60px; text-align: center;
 }
-
-.keypoint {
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--primary);
-  text-align: center;
-  width: 100%;
-  max-width: 700px;
-  letter-spacing: 0.2px;
-  padding: var(--sp-sm) var(--sp-md);
-  border-left: 3px solid var(--primary);
-  background: rgba(204,120,92,.08);
-  border-radius: 0 var(--rounded-md) var(--rounded-md) 0;
-  margin-bottom: var(--sp-lg);
-}
-.slide-dark .keypoint { color: var(--primary); background: rgba(204,120,92,.12); }
-.slide-center .keypoint { margin-left: auto; margin-right: auto; }
-
-/* Dark nav overrides */
 .slide-dark .nav-btn { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.15); color: var(--on-dark); }
 .slide-dark .page-num { color: var(--on-dark-soft); }
 
-/* ASCII diagram */
-.ascii-diagram {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  line-height: 1.25;
-  color: var(--muted);
-  white-space: pre;
-  text-align: left;
-  margin-top: var(--sp-md);
-  transform: scale(0.85);
-}
-
 @media (max-width: 768px) {
-  h1 { font-size: 36px; }
-  h2 { font-size: 28px; }
+  h1 { font-size: 36px; } h2 { font-size: 28px; }
   .principles { grid-template-columns: 1fr; }
-  .skill-row { grid-template-columns: 1fr 1fr; }
+  .skill-row { grid-template-columns: 1fr; }
   .principle .num { font-size: 36px; }
 }
 </style>
@@ -327,376 +237,248 @@ td { padding: 10px 14px; border-bottom: 1px solid var(--hairline-soft); }
 
 <div class="deck" id="deck">
 
-  <!-- Slide 0: Title -->
-  <div class="slide slide-dark slide-center active" data-index="0">
+  <!-- 0. Title -->
+  <div class="slide slide-dark slide-left active">
     <div class="eyebrow">harness-traj-weaver</div>
     <h1>Meta-Harness</h1>
     <p class="subtitle">The Self-Improving Loop for AI-Coded Software</p>
-    <p style="margin-top:var(--sp-xxl);font-size:14px;color:var(--on-dark-soft)">Four principles · Four skills · One hook</p>
+    <p style="margin-top:var(--sp-xxl);font-size:14px;color:var(--on-dark-soft)">Three principles · Three skills · One hook</p>
     <div class="keypoint">AI-coded software needs a self-reviewing harness, not just more tests</div>
   </div>
 
-  <!-- Slide 1: The Problem -->
-  <div class="slide slide-left" data-index="1">
-    <div class="eyebrow">The Problem</div>
-    <h2>LLMs write code,<br>but who reviews the reviewer?</h2>
-    <ul class="step-list" style="margin-top:var(--sp-lg)">
-      <li><span class="step-num">01</span> AI generates code in Claude Code sessions</li>
-      <li><span class="step-num">02</span> No trace between commit and the conversation that produced it</li>
-      <li><span class="step-num">03</span> Review is reactive — after code is already committed</li>
-      <li><span class="step-num">04</span> No feedback loop to improve the process itself</li>
+  <!-- 1. Problem + TDD -->
+  <div class="slide slide-left">
+    <div class="eyebrow">Why</div>
+    <h2>LLMs write code —<br>who reviews the reviewer?</h2>
+    <ul class="step-list" style="margin-top:var(--sp-md)">
+      <li><span class="step-num">01</span> No trace between a commit and the conversation that produced it</li>
+      <li><span class="step-num">02</span> Review is reactive — after code lands, not before</li>
+      <li><span class="step-num">03</span> TDD checks correctness, not behavior quality or UX</li>
     </ul>
-    <div class="keypoint">Without traceability, AI-generated code is a black box — you can't diagnose what you can't see</div>
+    <div class="table-wrap" style="margin-top:var(--sp-lg)">
+    <table>
+      <tr><th></th><th>TDD</th><th>Meta-Harness</th></tr>
+      <tr><td>Scope</td><td>Code correctness</td><td>Agent behavior + developer experience</td></tr>
+      <tr><td>Feedback</td><td>Binary: pass / fail</td><td>Qualitative: human AUQ + execution traces</td></tr>
+      <tr><td>Trigger</td><td>Manual: write test → run</td><td>Auto: git commit/push → hooks fire</td></tr>
+      <tr><td>Memory</td><td>Test code as spec</td><td>Filesystem: .metaharness/v{version}/</td></tr>
+      <tr><td>Improvement</td><td>Developer refactors</td><td>Agent diagnoses root cause from traces</td></tr>
+    </table>
+    </div>
+    <div class="keypoint">TDD answers "does it work?" — Meta-Harness answers "is it good?" TDD is necessary but not sufficient for AI-generated code</div>
   </div>
 
-  <!-- Slide 2: Four Principles -->
-  <div class="slide slide-center" data-index="2">
-    <div class="eyebrow">The Foundation</div>
-    <h2>Four Principles</h2>
-    <div class="principles">
+  <!-- 2. Principles -->
+  <div class="slide slide-left">
+    <div class="eyebrow">Foundation</div>
+    <h2>Three Principles</h2>
+    <div class="principle-row">
       <div class="principle">
         <div class="num">1</div>
         <h4>Filesystem as Memory</h4>
-        <p>Full history on disk — no vector DB, no persistent memory. Just the filesystem.</p>
+        <p>No DB, no vector store — just versioned dirs you can read and diff.</p>
       </div>
       <div class="principle">
         <div class="num">2</div>
         <h4>Trace-Level Reasoning</h4>
-        <p>Diagnose raw execution traces, not compressed summaries or aggregate scores.</p>
+        <p>Diagnose raw execution traces, not aggregate scores.</p>
       </div>
       <div class="principle">
         <div class="num">3</div>
         <h4>Search-Set Feedback</h4>
-        <p>All improvement signals from the search set. Never expose test-set results.</p>
-      </div>
-      <div class="principle">
-        <div class="num">4</div>
-        <h4>Self-Improving</h4>
-        <p>Harness quality rises automatically as the underlying agent becomes more capable.</p>
+        <p>Human QA on search set only. Test-set never exposed.</p>
       </div>
     </div>
-    <div class="keypoint">These aren't abstract virtues — each principle maps to a concrete skill that enforces it</div>
+    <div class="keypoint">Each principle has teeth — enforced by a concrete skill, not just a slide</div>
   </div>
 
-  <!-- Slide 3: The Loop -->
-  <div class="slide slide-dark slide-center" data-index="3">
-    <div class="eyebrow" style="color:var(--accent-amber)">Architecture</div>
-    <h2>The Self-Improving Loop</h2>
-    <div class="flow-row" style="margin-top:var(--sp-xl)">
-      <div class="flow-node active">Filesystem</div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-node">Propose</div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-node">Harness + LLM</div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-node">Evaluate</div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-node">Feedback</div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-node active">Filesystem</div>
+  <!-- 3. Mechanism -->
+  <div class="slide slide-dark slide-left">
+    <div class="eyebrow" style="color:var(--accent-amber)">Mechanism</div>
+    <h2>How It Works</h2>
+    <p style="color:var(--on-dark-soft);font-size:14px;margin-bottom:var(--sp-xs)">git commit / push triggers the loop</p>
+    <div class="flow-row" style="margin-top:var(--sp-lg);flex-wrap:nowrap">
+      <div class="flow-node hi">OBSERVE</div><div class="flow-arrow">→</div>
+      <div class="flow-node">DIAGNOSE</div><div class="flow-arrow">→</div>
+      <div class="flow-node">PROPOSE</div><div class="flow-arrow">→</div>
+      <div class="flow-node">EVALUATE</div><div class="flow-arrow">→</div>
+      <div class="flow-node">ARCHIVE</div>
     </div>
-    <p style="margin-top:var(--sp-xl);color:var(--on-dark-soft);font-size:15px">
-      Agent proposes → Harness tests → Results flow back → Agent learns → repeat
-    </p>
-    <div class="keypoint">The filesystem is the only database — every artifact is a file you can read, diff, and learn from</div>
+    <div style="display:flex;justify-content:center;gap:var(--sp-lg);margin-top:4px;font-size:11px;color:var(--on-dark-soft);flex-wrap:nowrap">
+      <span style="min-width:88px;text-align:center">Read traces</span><span style="min-width:88px;text-align:center">Find root cause</span><span style="min-width:88px;text-align:center">Propose P0/P1/P2</span><span style="min-width:88px;text-align:center">AUQ 27q / 7s</span><span style="min-width:88px;text-align:center">Write inputs/</span>
+    </div>
+    <div class="flow-row" style="flex-wrap:nowrap">
+      <div class="flow-node" style="border-color:var(--accent-amber);color:var(--accent-amber)">ITERATE</div>
+      <div class="flow-arrow" style="transform:rotate(180deg)">→</div>
+      <div class="flow-node hi">OBSERVE</div>
+    </div>
+    <p style="margin-top:var(--sp-sm);font-size:13px;color:var(--on-dark-soft)">plan-trigger.json → next round; next OBSERVE reads previous inputs/</p>
+    <div style="margin-top:var(--sp-lg);font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--on-dark-soft);line-height:1.7">
+      .metaharness/<br>
+      &nbsp;&nbsp;├── v0.2.0/ &nbsp;inputs/ &nbsp;outputs/ &nbsp;plan-v0.3.0.json<br>
+      &nbsp;&nbsp;├── v0.3.0/ &nbsp;inputs/ &nbsp;outputs/ &nbsp;plan-v0.4.0.json<br>
+      &nbsp;&nbsp;├── plan-trigger.json &nbsp;&nbsp;← iteration trigger<br>
+      &nbsp;&nbsp;└── qa-state.json &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;← interrupt / resume
+    </div>
+    <div class="keypoint">Hook = heartbeat · AUQ = human signal injector · Filesystem = only state store</div>
   </div>
 
-  <!-- Slide 4: Skills Overview -->
-  <div class="slide slide-center" data-index="4">
+  <!-- 4. Skills -->
+  <div class="slide slide-left">
     <div class="eyebrow">Implementation</div>
-    <h2>Four Skills, One Loop</h2>
+    <h2>Three Skills</h2>
     <div class="skill-row">
       <div class="skill-card">
         <div class="icon">&#9655;</div>
         <h4>traj</h4>
-        <p>Session trajectory visualization — interactive timeline from JSONL traces</p>
+        <p>Session trajectory HTML — interactive timeline from JSONL traces with TOC, thinking blocks, and tool call tracking</p>
       </div>
       <div class="skill-card">
         <div class="icon">&#9733;</div>
         <h4>metric</h4>
-        <p>Code review dashboard — Karpathy 4 principles auto-scoring</p>
+        <p>Code review dashboard — auto-scores every diff against 4 Karpathy principles before commit</p>
       </div>
       <div class="skill-card">
         <div class="icon">&#9998;</div>
         <h4>survey</h4>
-        <p>Human feedback forms — QA + paradigm assessment with git context</p>
-      </div>
-      <div class="skill-card">
-        <div class="icon">&#9670;</div>
-        <h4>theme</h4>
-        <p>Visual design tokens — warm Anthropic aesthetic for all HTML output</p>
+        <p>Human-loop QA — terminal AUQ (27 questions / 7 sections) with git-aware diff inspection</p>
       </div>
     </div>
-    <div class="keypoint">Four skills, each covering one step of the loop — together they close the feedback cycle</div>
+    <div class="keypoint">traj = Observe · metric = Diagnose · survey = Evaluate → together they close the loop</div>
   </div>
 
-  <!-- Slide 5: traj — Observe -->
-  <div class="slide slide-left" data-index="5">
-    <div class="eyebrow">Principle #2 &mdash; Trace-Level Reasoning</div>
-    <h2>traj: See What the Agent Saw</h2>
-    <p style="color:var(--muted);max-width:700px">Reads Claude Code JSONL sessions and generates a self-contained interactive timeline with TOC navigation, thinking blocks, tool call tracking, and skill usage highlighting.</p>
+  <!-- 5. traj -->
+  <div class="slide slide-left">
+    <div class="eyebrow">Skill / Observe</div>
+    <h2>traj — See What the Agent Saw</h2>
+    <p style="color:var(--muted);max-width:700px">Reads Claude Code JSONL sessions, generates self-contained interactive HTML with TOC, foldable turns, thinking blocks, tool calls, and skill highlighting.</p>
     <div class="code-block">
 <span class="cmd">python</span> <span class="path">skills/traj/scripts/generate_traj.py</span> \
-  <span class="arg">--input</span> ~/.claude/projects/<project>/<session>.jsonl \
+  <span class="arg">--input</span> ~/.claude/projects/&lt;project&gt;/&lt;session&gt;.jsonl \
   <span class="arg">--output</span> traj.html
     </div>
     <div style="display:flex;gap:var(--sp-md);margin-top:var(--sp-sm)">
       <span class="tag tag-teal">Thinking blocks</span>
-      <span class="tag tag-amber">Tool calls</span>
-      <span class="tag tag-coral">Skill execs</span>
-      <span class="tag tag-dark">TOC nav</span>
+      <span class="tag tag-coral">Tool calls</span>
+      <span class="tag tag-teal">Skill execs</span>
+      <span class="tag tag-coral">TOC nav</span>
     </div>
     <div class="keypoint">Don't read summaries — read the raw conversation. Thinking blocks reveal the agent's actual reasoning</div>
   </div>
 
-  <!-- Slide 6: metric — Evaluate -->
-  <div class="slide slide-left" data-index="6">
-    <div class="eyebrow">Principle #3 &mdash; Search-Set Feedback</div>
-    <h2>metric: Gate Quality Before Commit</h2>
-    <p style="color:var(--muted);max-width:700px">Reads git diff and evaluates every change against the four Karpathy Principles — auto-detects over-engineering, drive-by edits, and missing assumptions.</p>
-    <div class="table-wrap">
-    <table>
-      <tr><th>P#</th><th>Principle</th><th>What it Checks</th></tr>
-      <tr><td>P1</td><td>Think Before Coding</td><td>Assumptions stated? Alternatives considered?</td></tr>
-      <tr><td>P2</td><td>Simplicity First</td><td>No over-engineering? 200 lines → 50?</td></tr>
-      <tr><td>P3</td><td>Surgical Changes</td><td>Every line traces to the goal?</td></tr>
-      <tr><td>P4</td><td>Goal-Driven Execution</td><td>Verifiable completion criteria?</td></tr>
-    </table>
-    </div>
-    <div class="code-block" style="margin-top:var(--sp-md)">
+  <!-- 6. metric + survey -->
+  <div class="slide slide-left">
+    <div class="eyebrow">Skills / Diagnose &amp; Evaluate</div>
+    <h2>metric + survey — Gate &amp; Feedback</h2>
+
+    <h3 style="margin-top:var(--sp-sm)">metric — Pre-commit code review</h3>
+    <p style="color:var(--muted);max-width:700px;font-size:14px">Reads git diff, scores every change against 4 Karpathy principles — over-engineering, drive-by edits, missing assumptions. Blocks commit below threshold.</p>
+    <div class="code-block" style="font-size:12px;padding:var(--sp-sm) var(--sp-md)">
 <span class="cmd">python</span> <span class="path">skills/metric/scripts/generate_dashboard.py</span> \
   <span class="arg">--diff</span> HEAD <span class="arg">--goal</span> <span class="path">"Add user auth"</span>
     </div>
-    <div class="keypoint">Code review should be pre-commit, automated, and principle-based — not a post-hoc human bottleneck</div>
-  </div>
 
-  <!-- Slide 7: survey — Feedback -->
-  <div class="slide slide-left" data-index="7">
-    <div class="eyebrow">Principle #3 & #4 &mdash; Closing the Loop</div>
-    <h2>survey: Human Judgment, Structured</h2>
-    <p style="color:var(--muted);max-width:700px">Generates HTML-form questionnaires with auto-injected git history, CHANGELOG, and ROADMAP — so the reviewer sees full context before answering.</p>
-    <div class="table-wrap">
-    <table>
-      <tr><th>Type</th><th>Target</th><th>Questions</th></tr>
-      <tr><td><code>qa</code></td><td>Individual skill UI/UX</td><td>22 questions · 6 sections</td></tr>
-      <tr><td><code>human-loop</code></td><td>Meta-Harness paradigm</td><td>19 questions · 4 parts</td></tr>
-    </table>
+    <h3 style="margin-top:var(--sp-md)">survey — Terminal human QA</h3>
+    <p style="color:var(--muted);max-width:700px;font-size:14px">AskUserQuestion drives interactive Q&A after each skill execution. 27 questions across 7 sections (A–G), including 9 dynamic diff-aware questions. Answers archived as structured JSON.</p>
+    <div style="display:flex;gap:var(--sp-sm);margin-top:var(--sp-xs)">
+      <span class="tag tag-teal">Section A–F: static</span>
+      <span class="tag tag-coral">Section G: diff-aware</span>
+      <span class="tag tag-teal">quick 8q / full 27q</span>
     </div>
-    <p style="margin-top:var(--sp-md);font-size:14px;color:var(--muted)">
-      Context injected: <code>git log</code> · <code>git log -5</code> · <code>CHANGELOG.md</code> · <code>ROADMAP.md</code>
-    </p>
-    <div class="keypoint">Feedback without context is noise — every survey embeds the git history that produced the change</div>
+    <div class="keypoint">metric gates before commit · survey learns from humans after commit — together they close the quality loop</div>
   </div>
 
-  <!-- Slide 8: The Complete Cycle -->
-  <div class="slide slide-dark slide-center" data-index="9">
-    <div class="eyebrow" style="color:var(--accent-amber)">Integration</div>
-    <h2>The Complete Cycle</h2>
-    <div class="ascii-diagram" style="margin-top:var(--sp-md)">
-                         +-------------------+
-                         |   Filesystem      |<-----------------------------+
-                         |   (.cache/evals)  |                              |
-                         +--------+----------+                              |
-                                  |                                  (3) Store
-                                  v                                  all Logs
-    +-----------------------------+-----------------------------------+
-    |                             |                                   |
-    |  +------------------+  +------------------+  +----------------+ |
-    |  | Proposed Code    |  | Reasoning Traces |  | Eval Scores    | |
-    |  | (diffs, commits) |  | (JSONL sessions) |  | (review dash)  | |
-    |  +--------+---------+  +--------+---------+  +-------+--------+ |
-    |           |                     |                    |          |
-    +-----------+---------------------+--------------------+----------+
-                |                     |                    |
-          (1) Propose           traj visualizes     metric + survey
-                |                     |                    |
-                v                     v                    |
-    +-----------+----------+  +-------+--------+          |
-    | Harness + LLM        |  | traj           |          |
-    | (Claude Code)        |  | Trace View     |<---------+
-    +-----------+----------+  +----------------+
-                |
-                v
-    +-----------+----------+
-    | metric               |
-    | Code Review Dashboard|
-    | (Karpathy Principles)|
-    +-----------+----------+
-                |
-                v
-    +-----------+----------+
-    | survey               |----------------------------------------------+
-    | Human Feedback Loop  |                                              |
-    +----------------------+                                              |
-                                                                         |
-    Iteration N+1 ← richer traces ← better diagnosis ← better proposals ←+
+  <!-- 7. Hook + DX -->
+  <div class="slide slide-left">
+    <div class="eyebrow">Integration</div>
+    <h2>Hook + Developer Experience</h2>
+
+    <div style="display:flex;gap:var(--sp-xl);margin-top:var(--sp-md);align-items:stretch">
+    <div style="flex:1;min-width:260px;display:flex;flex-direction:column">
+    <h3>Install</h3>
+    <div class="code-block" style="font-size:13px;flex:1;display:flex;align-items:center">
+<span class="cmd">git clone</span> <span class="path">https://github.com/yangjingo/harness-traj-weaver.git</span> \
+  ~/.claude/skills/harness-traj-weaver
+<span class="cmd">bash</span> ~/.claude/skills/harness-traj-weaver/scripts/install.sh
     </div>
-    <div class="keypoint">Every commit links to a session, every session links to a trace, every trace feeds the next iteration</div>
-  </div>
-
-  <!-- Slide 10: Filesystem Layout -->
-  <div class="slide slide-dark slide-left" data-index="10">
-    <div class="eyebrow" style="color:var(--accent-amber)">Principle #1</div>
-    <h2>Filesystem as Memory</h2>
-    <div class="code-block" style="font-size:13px">
-<span class="cmd">.cache/</span>
-  <span class="path">traces/</span>       — execution traces (JSONL sessions)
-  <span class="path">candidates/</span>   — candidate harness outputs
-  <span class="path">feedback/</span>     — search-set evaluation results
-
-<span class="cmd">evals/</span>
-  <span class="path">v0.1.0/</span>
-    <span class="path">inputs/</span>
-      session.jsonl              — archived session for traj demo
-    <span class="path">outputs/</span>
-      traj.html                  — generated trajectory HTML
-      meta-harness-survey.html   — human feedback survey
-      dashboard.html             — code review results
-
-<span class="cmd">CHANGELOG.md</span>    — project version history
-<span class="cmd">ROADMAP.md</span>      — future direction (surfaced in surveys)
+    <p style="font-size:13px;color:var(--muted);margin-top:var(--sp-xs)">Two commands. Installs skill + hooks into .git/hooks/.</p>
     </div>
-    <p style="margin-top:var(--sp-md);color:var(--on-dark-soft);font-size:15px">
-      No database. No vector store. No persistent memory. Just the filesystem.
-    </p>
-    <div class="keypoint">The filesystem is the ultimate audit trail — every artifact is versioned, readable, and diffable</div>
-  </div>
 
-  <!-- Slide 11: The Hook -->
-  <div class="slide slide-left" data-index="11">
-    <div class="eyebrow">Automation</div>
-    <h2>Pre-Commit Hook: The Gate</h2>
-    <p style="color:var(--muted);max-width:700px">Fires before every <code>git commit</code> — finds the current Claude Code session, runs traj + metric, and blocks if quality drops.</p>
-    <div class="code-block" style="margin-top:var(--sp-md);text-align:left;line-height:1.7">
-<span class="hl">git commit</span>
-  │
-  ├─ <span class="hl">1.</span> Find current Claude Code session JSONL
-  │     (~/.claude/projects/&lt;project&gt;/&lt;latest&gt;.jsonl)
-  │
-  ├─ <span class="hl">2.</span> Generate <span class="path">traj.html</span> from the session trace
-  │     → .cache/feedback/traj-&lt;session-id&gt;.html
-  │
-  ├─ <span class="hl">3.</span> Run <span class="path">metric</span> review on staged changes
-  │     → .cache/feedback/review-&lt;timestamp&gt;.html
-  │
-  ├─ <span class="hl">4.</span> Show terminal summary
-  │
-  └─ <span class="hl">5.</span> Block commit if score &lt; threshold
-    </div>
-    <div class="keypoint">One hook. Installed in seconds. Every commit is now traced, scored, and archived — automatically</div>
-  </div>
-
-  <!-- Slide 12: Developer Experience -->
-  <div class="slide slide-dark slide-center" data-index="12">
-    <div class="eyebrow" style="color:var(--accent-amber)">Developer Experience</div>
-    <h2>What You See</h2>
-    <div class="code-block" style="text-align:left;font-size:13px">
+    <div style="flex:1;min-width:260px;display:flex;flex-direction:column">
+    <h3>What you see on commit</h3>
+    <div class="code-block" style="font-size:12px;flex:1">
 === Meta-Harness Pre-Commit Review ===
   Files reviewed: 3
   Issues found:   4
   Overall score:  3.8/5 (NEEDS WORK)
 
-  P1 Think Before Coding  ████████░░ 4/5
-  P2 Simplicity First      ██████░░░░ 3/5
-  P3 Surgical Changes      ████████░░ 4/5
-  P4 Goal-Driven Execution ████████░░ 4/5
-
-  <span class="path">traj:</span>    .cache/feedback/traj-f615685c.html
-  <span class="path">metric:</span>  .cache/feedback/review-20260525-184100.html
-  <span class="path">session:</span> f615685c-0a69-4354-90db-b2fbb68c038b.jsonl
+  <span class="path">traj:</span>   .metaharness/v0.3.0/outputs/traj-*.html
+  <span class="path">metric:</span> .metaharness/v0.3.0/outputs/commit-*.json
     </div>
-    <div class="keypoint">3.8/5 with 4 issues — the hook surfaces problems before they reach production, not after</div>
+    <p style="font-size:13px;color:var(--muted);margin-top:var(--sp-xs)">Terminal output. Blocks commit below score threshold.</p>
+    </div>
+    </div>
+
+    <div class="keypoint">One hook. Two commands. Every commit is now traced, scored, and archived — automatically.</div>
   </div>
 
-  <!-- Slide 13: Why Session Matters -->
-  <div class="slide slide-center" data-index="13">
-    <div class="eyebrow">The Key Insight</div>
+  <!-- 8. Why sessions matter -->
+  <div class="slide slide-dark slide-left">
+    <div class="eyebrow" style="color:var(--accent-amber)">The Key Insight</div>
     <h2>Every Commit Has a Session</h2>
     <div class="principles">
       <div class="principle">
         <div class="num">&#9655;</div>
         <h4>Traceability</h4>
-        <p>Any commit can be traced back to the exact Claude Code conversation that produced it</p>
+        <p>Any commit traces back to the exact conversation that produced it, via session ID</p>
       </div>
       <div class="principle">
         <div class="num">&#9881;</div>
         <h4>Diagnosis</h4>
-        <p>If a commit introduces a bug, replay the session trace to see what the agent was thinking</p>
+        <p>Bug in a commit? Replay the session trace to see what the agent was thinking</p>
       </div>
       <div class="principle">
         <div class="num">&#8634;</div>
         <h4>Feedback Loop</h4>
-        <p>Session ID is part of every review artifact — proposal → trace → review → feedback</p>
+        <p>Session → trace → review → feedback → next session. Self-reinforcing quality.</p>
       </div>
       <div class="principle">
         <div class="num">&#9733;</div>
-        <h4>Self-Enforcing</h4>
-        <p>The harness reviews its own code via its own hooks. Meta-Harness eats its own dogfood.</p>
+        <h4>Dogfooding</h4>
+        <p>Meta-Harness reviews its own code via its own hooks. The reviewer reviews itself.</p>
       </div>
     </div>
     <div class="keypoint">The session ID is the missing link — it connects a commit to the exact conversation that produced it</div>
   </div>
 
-  <!-- Slide 14: Principles in Action -->
-  <div class="slide slide-dark slide-left" data-index="14">
-    <div class="eyebrow" style="color:var(--accent-amber)">Enforcement</div>
-    <h2>Principles in Action</h2>
+  <!-- 9. Reference -->
+  <div class="slide slide-dark slide-left">
+    <div class="eyebrow" style="color:var(--accent-amber)">Reference</div>
+    <h2>Docs & Links</h2>
     <div class="table-wrap">
     <table>
-      <tr><th>Principle</th><th>Enforced By</th><th>How</th></tr>
-      <tr><td>Filesystem as Memory</td><td>All skills</td><td>Every artifact in .cache/ or evals/ — nothing in a database</td></tr>
-      <tr><td>Trace-Level Reasoning</td><td>traj</td><td>Raw JSONL → interactive HTML, not compressed summaries</td></tr>
-      <tr><td>Search-Set Feedback</td><td>metric + survey</td><td>Review dashboards + human surveys, never test-set data</td></tr>
-      <tr><td>Self-Improving</td><td>The loop itself</td><td>Each iteration leaves richer traces → better proposals</td></tr>
+      <tr><th>File</th><th>Content</th></tr>
+      <tr><td><code>SKILL.md</code></td><td>Entry point — principles, workflow, hook integration</td></tr>
+      <tr><td><code>DESIGN.md</code></td><td>Design philosophy — color, typography, spacing</td></tr>
+      <tr><td><code>UX.md</code></td><td>Implementation — components, animations, layout</td></tr>
+      <tr><td><code>QUICKSTART.md</code></td><td>AI agent setup — install + verify in 2 minutes</td></tr>
+      <tr><td><code>CHANGELOG.md</code></td><td>Version history — user-visible changes per release</td></tr>
+      <tr><td><code>README.md</code></td><td>Project overview — skills table, install, iteration history</td></tr>
     </table>
     </div>
-    <div class="keypoint">Every principle has teeth — each one is enforced by a concrete skill, not just a slide in a deck</div>
-  </div>
-
-  <!-- Slide 15: Get Started -->
-  <div class="slide slide-center" data-index="15">
-    <div class="eyebrow">Get Started</div>
-    <h2>Install the Harness</h2>
-    <div class="code-block" style="font-size:15px;text-align:left">
-<span class="cmd"># 1. Install the pre-commit hook</span>
-<span class="cmd">cp</span> <span class="path">hooks/pre-commit</span> <span class="path">.git/hooks/pre-commit</span>
-<span class="cmd">chmod +x</span> <span class="path">.git/hooks/pre-commit</span>
-
-<span class="cmd"># 2. Enable strict mode (optional)</span>
-<span class="cmd">git config</span> metaharness.strict <span class="arg">true</span>
-<span class="cmd">git config</span> metaharness.threshold <span class="arg">3.0</span>
-
-<span class="cmd"># 3. Commit as usual — the harness runs automatically</span>
-<span class="cmd">git commit -m</span> <span class="path">"my change"</span>
+    <div style="margin-top:var(--sp-lg);font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--on-dark-soft)">
+      github.com/yangjingo/harness-traj-weaver
     </div>
-    <p style="margin-top:var(--sp-lg);font-size:15px;color:var(--muted)">
-      That's it. Every commit is now traced, scored, and archived.
-    </p>
-    <div class="keypoint">Two commands to install. Zero changes to your workflow. Instant quality gate on every commit</div>
-  </div>
-
-  <!-- Slide 16: Closing -->
-  <div class="slide slide-dark slide-center" data-index="16">
-    <h1 style="font-size:64px">Meta-Harness</h1>
-    <p class="subtitle" style="color:var(--on-dark-soft)">
-      Four principles · Four skills · One hook<br>
-      <span style="font-size:16px;color:var(--on-dark-soft);margin-top:var(--sp-sm);display:inline-block">
-        Filesystem as memory · Trace-level reasoning · Search-set feedback · Self-improving
-      </span>
-    </p>
-    <p style="margin-top:var(--sp-xxl);font-size:13px;color:var(--on-dark-soft)">
-      github.com/yangjingla/harness-traj-weaver
-    </p>
-    <div class="keypoint">The harness that reviews the reviewer — Meta-Harness eats its own dogfood</div>
+    <div class="keypoint">Start with SKILL.md — it's the single entry point for both human developers and AI agents</div>
   </div>
 
 </div>
 
 <!-- Navigation -->
 <div class="nav">
-  <button class="nav-btn" onclick="prev()" title="Previous">&#8592;</button>
-  <span class="page-num" id="pager">1 / 17</span>
-  <button class="nav-btn" onclick="next()" title="Next">&#8594;</button>
+  <button class="nav-btn" onclick="prev()" title="Previous">←</button>
+  <span class="page-num" id="pager">1 / 10</span>
+  <button class="nav-btn" onclick="next()" title="Next">→</button>
 </div>
 
 <script>
@@ -716,21 +498,14 @@ function prev() { show(current - 1); }
 
 document.addEventListener('keydown', function(e) {
   if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
-    e.preventDefault();
-    next();
+    e.preventDefault(); next();
   } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-    e.preventDefault();
-    prev();
-  } else if (e.key === 'Home') {
-    e.preventDefault();
-    show(0);
-  } else if (e.key === 'End') {
-    e.preventDefault();
-    show(total - 1);
-  }
+    e.preventDefault(); prev();
+  } else if (e.key === 'Home') { e.preventDefault(); show(0); }
+  else if (e.key === 'End') { e.preventDefault(); show(total - 1); }
 });
 
-// Touch swipe support
+// Swipe
 var touchStartX = 0;
 document.addEventListener('touchstart', function(e) { touchStartX = e.changedTouches[0].screenX; });
 document.addEventListener('touchend', function(e) {
@@ -738,13 +513,11 @@ document.addEventListener('touchend', function(e) {
   if (Math.abs(dx) > 50) { dx > 0 ? prev() : next(); }
 });
 
-// Reposition keypoints: move each slide's .keypoint right after its h2 (or h1)
+// Move keypoint after h2/h1
 slides.forEach(function(slide) {
   var kp = slide.querySelector('.keypoint');
   var heading = slide.querySelector('h2') || slide.querySelector('h1');
-  if (kp && heading) {
-    heading.insertAdjacentElement('afterend', kp);
-  }
+  if (kp && heading) heading.insertAdjacentElement('afterend', kp);
 });
 
 show(0);
