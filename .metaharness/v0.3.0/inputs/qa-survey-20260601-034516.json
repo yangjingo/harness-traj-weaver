@@ -1,0 +1,44 @@
+{
+  "skill": "survey",
+  "version": "v0.3.0",
+  "mode": "full",
+  "branch": "unknown",
+  "timestamp": "2026-06-01T03:45:16Z",
+  "question_count": 25,
+  "question_bank_version": "0.2.0",
+  "session_id": "378bb48b-a31a-40e2-8e01-bd8bfd62aa16",
+  "duration_seconds": null,
+  "answers": {
+    "a1": "清晰",
+    "a2": "一致",
+    "a3": "合理",
+    "b1": "清晰",
+    "b2": "前缀有用但不够醒目",
+    "b3": "顺畅",
+    "c1": "合并更好",
+    "c2": "有一点提升",
+    "c3": "可以接受",
+    "c4": "合适",
+    "c5": "terminal优先即可",
+    "d1": "合理",
+    "d2": "还需要skill_version",
+    "d3": "代表性强",
+    "e1": [
+      "mh:前缀加长",
+      "AUQ批量提问规范",
+      "skill_version追踪"
+    ],
+    "e1b": [
+      "历史趋势面板"
+    ],
+    "e2": "跳过",
+    "f1": "满意，少量细节可优化",
+    "f2": "完全达到",
+    "g1": "比例合理",
+    "g2": "全部成立",
+    "g3": "changelog耦合",
+    "g4": "记录了主要的",
+    "g5": "mh:不够直观",
+    "g6": "gap合理"
+  }
+}

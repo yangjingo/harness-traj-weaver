@@ -1,0 +1,100 @@
+{
+  "plan_version": "v0.4.0",
+  "from_version": "v0.3.0",
+  "generated": "2026-06-01T11:51:00+08:00",
+  "based_on": {
+    "feedback": ".metaharness/v0.3.0/inputs/qa-survey-20260601-034516.json",
+    "qa_mode": "full",
+    "questions_answered": 21,
+    "questions_skipped": [ "g7", "g8", "g9" ]
+  },
+  "diagnosis": {
+    "feedback_summary": {
+      "structure": "清晰 — 7节分层，G节独立文件后 skill.md 可维护",
+      "workflow": "顺畅 — probe → entry → mode → A-F → G → archive → close",
+      "brand": "mh: 前缀有用但不够醒目，新用户看不懂",
+      "naming": "mh: 不够直观，应考虑更明确的前缀",
+      "archive": "缺 skill_version 字段，题库和技能版本应独立追踪",
+      "goal": "完全达到 — human-loop 完整实现终端 AUQ 反馈闭环"
+    },
+    "root_causes": [
+      "mh: 前缀在 12-char header 限制下辨识度不足",
+      "AUQ 批量提问（同节合并 vs 逐题）缺少明确规范",
+      "归档元数据偏少：缺 skill_version、reviewer 标识",
+      "约束记录分散在 skill.md / design doc / diff-aware-workflow 三处",
+      "中断/续接状态机写了但从未实际测试",
+      "evals/ 误输出到错误目录 — archive script 默认路径未对齐 .metaharness/",
+      "缺少历史趋势面板 — 3轮 QA 答案已有但无法可视化对比"
+    ]
+  },
+  "proposal": {
+    "theme": "打磨终端体验 + 数据闭环可视化",
+    "tasks": [
+      {
+        "id": "P0-1",
+        "file": "skills/survey/reference/auq-questions.json",
+        "action": "edit",
+        "desc": "mh: → meta: 前缀全局替换，12-char header 内最大化品牌辨识度"
+      },
+      {
+        "id": "P0-2",
+        "file": "skills/survey/skill.md",
+        "action": "edit",
+        "desc": "新增 AUQ 批量提问规范：同节 ≤3 题可合并，跨节不可合并，G 节每 3 题一组"
+      },
+      {
+        "id": "P0-3",
+        "file": "skills/survey/scripts/archive-auq-answers.py",
+        "action": "edit",
+        "desc": "归档新增 --skill-version 参数 + skill_version 字段；reviewer 从 git config 自动检测"
+      },
+      {
+        "id": "P0-4",
+        "file": "skills/survey/reference/diff-aware-workflow.md",
+        "action": "edit",
+        "desc": "补充 silent-skip 规则正式文档；约束记录收敛到单一段落"
+      },
+      {
+        "id": "P1-1",
+        "file": "skills/survey/scripts/probe-diff.py",
+        "action": "edit",
+        "desc": "probe 输出增加 qa_count 历史统计（读取当前版本 inputs/ 目录）"
+      },
+      {
+        "id": "P1-2",
+        "file": "skills/survey/scripts/trend.py",
+        "action": "create",
+        "desc": "历史趋势脚本：读取 .metaharness/*/inputs/qa-*.json → 输出满意度/评分变化表"
+      },
+      {
+        "id": "P1-3",
+        "file": ".metaharness/qa-state.json",
+        "action": "test",
+        "desc": "中断续接端到端测试：模拟暂停 → 下次 session 检测 → 续接完成"
+      },
+      {
+        "id": "P2-1",
+        "file": "skills/survey/skill.md",
+        "action": "edit",
+        "desc": "AUTO_DECIDE 最小实现：对 entry_gate 和 mode 两个问题自动选择推荐项（已有答案时）"
+      },
+      {
+        "id": "P2-2",
+        "file": "changelog.md",
+        "action": "edit",
+        "desc": "精简 changelog：移除实现细节，只保留用户可见功能变更"
+      },
+      {
+        "id": "P2-3",
+        "file": "readme.md + readme-zh.md",
+        "action": "edit",
+        "desc": "Eval 节更新为 .metaharness/ 路径；Skills 表补全 survey 的 AUQ 模式描述"
+      }
+    ]
+  },
+  "qa_review": {
+    "q1_scope": "v0.4.0 打磨现有功能，不引入新范式 — 前缀/批量规范/趋势面板都是增量改进",
+    "q2_breaking": "mh: → meta: 前缀变更是 breaking change（但旧 QA 答案不受影响）",
+    "q3_completeness": "P0 必做（4项），P1 应做（3项），P2 可做（3项）。预计 3-4 轮 AUQ QA"
+  }
+}

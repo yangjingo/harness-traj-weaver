@@ -1,0 +1,26 @@
+{
+  "skill": "survey",
+  "version": "v0.2.0",
+  "mode": "quick",
+  "branch": "unknown",
+  "timestamp": "2026-06-01T02:14:42Z",
+  "question_count": 9,
+  "session_id": "378bb48b-a31a-40e2-8e01-bd8bfd62aa16",
+  "duration_seconds": null,
+  "answers": {
+    "a1": "G 节应该独立成文件",
+    "b1": "基本合理，探测可以更轻量",
+    "c1": "可以在Header加 metaharness:survey 提示",
+    "d2": "还缺问题版本号",
+    "e1": [
+      "品牌标识",
+      "题库版本追踪"
+    ],
+    "e1b": [
+      "问题动态生成"
+    ],
+    "f1": "有提升，但还可以更好",
+    "f2": "基本符合，少了一些角度",
+    "g4": "记录了主要的，遗漏了次要的"
+  }
+}
