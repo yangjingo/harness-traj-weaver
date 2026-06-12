@@ -8,6 +8,12 @@ code,pre{font-family:'JetBrains Mono','Cascadia Code',monospace;font-size:13px}
 a{color:var(--accent-teal);text-decoration:none}
 a:hover{text-decoration:underline}
 
+/* Session meta */
+.session-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:16px 0 20px}
+.session-meta-item{padding:14px 16px;background:rgba(93,184,166,0.06);border:1px solid var(--hairline);border-radius:12px}
+.session-meta-label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px}
+.session-meta-value{display:block;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--ink);word-break:break-word}
+
 /* Side TOC */
 .side-toc{position:fixed;left:0;top:0;bottom:0;width:260px;background:var(--surface-dark);color:#c8c4bc;padding:20px 0;overflow-y:auto;font-size:13px;z-index:100;transition:width 0.25s}
 .toc-collapsed .side-toc{width:40px;overflow:hidden}
@@ -133,4 +139,5 @@ details summary:hover{color:var(--primary)}
 @media(max-width:860px){
   .side-toc{display:none}
   body{padding-left:32px}
+  .session-meta{grid-template-columns:1fr}
 }

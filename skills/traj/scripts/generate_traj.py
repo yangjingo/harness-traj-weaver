@@ -13,6 +13,7 @@ from html import escape
 
 SKILL_KEYWORDS = ['skill.md', 'claude.md', 'src/skills/', 'src/prompts/',
                    '.claude/skills/', 'SKILL.md', 'CLAUDE.md']
+MODEL_ENV_KEYS = ['MODEL', 'CLAUDE_CODE_MODEL', 'ANTHROPIC_MODEL', 'OPENAI_MODEL']
 
 # TOC action types: (css_class, icon, label)
 def _assistant_action(blocks):
@@ -86,6 +87,63 @@ def fmt_time(ts):
         return dt.strftime('%H:%M:%S')
     except Exception:
         return ''
+
+
+def parse_timestamp(ts):
+    if not ts:
+        return None
+    try:
+        return datetime.fromisoformat(ts.replace('Z', '+00:00'))
+    except Exception:
+        return None
+
+
+def fmt_datetime(ts):
+    dt = parse_timestamp(ts)
+    if not dt:
+        return ''
+    return dt.astimezone().strftime('%Y-%m-%d %H:%M:%S')
+
+
+def fmt_duration(seconds):
+    if seconds is None or seconds < 0:
+        return 'Unknown'
+    seconds = int(seconds)
+    hours, remainder = divmod(seconds, 3600)
+    minutes, secs = divmod(remainder, 60)
+    if hours:
+        return f'{hours:02d}:{minutes:02d}:{secs:02d}'
+    return f'{minutes:02d}:{secs:02d}'
+
+
+def derive_model_name(records):
+    for key in MODEL_ENV_KEYS:
+        value = os.environ.get(key)
+        if value:
+            return value
+
+    for rec in records:
+        msg = rec.get('message', {})
+        model = msg.get('model') if isinstance(msg, dict) else None
+        if model:
+            return str(model)
+
+    return 'Unknown'
+
+
+def build_session_meta(records):
+    timestamps = [rec.get('timestamp') for rec in records if rec.get('timestamp')]
+    start_ts = timestamps[0] if timestamps else ''
+    end_ts = timestamps[-1] if timestamps else ''
+    start_dt = parse_timestamp(start_ts)
+    end_dt = parse_timestamp(end_ts)
+    duration_seconds = int((end_dt - start_dt).total_seconds()) if start_dt and end_dt else None
+    return {
+        'model_name': derive_model_name(records),
+        'session_start': fmt_datetime(start_ts) or 'Unknown',
+        'session_end': fmt_datetime(end_ts) or 'Unknown',
+        'session_duration': fmt_duration(duration_seconds),
+    }
 
 
 def load_jsonl(path):
@@ -393,6 +451,7 @@ def main():
         print(f'[validate] No empty blocks found — all content will be rendered')
 
     toc_entries, timeline_blocks, stats = build_toc_and_timeline(records)
+    session_meta = build_session_meta(records)
 
     traj_css = load_template('traj.css')
     template = Template(load_template('traj-template.html'))
@@ -411,6 +470,10 @@ def main():
         n_write_files=stats['write_files'],
         n_tool_use=stats['tool_use'],
         n_thinking=stats['thinking'],
+        model_name=session_meta['model_name'],
+        session_start=session_meta['session_start'],
+        session_end=session_meta['session_end'],
+        session_duration=session_meta['session_duration'],
         source_file=os.path.abspath(args.input),
         today=datetime.now().strftime('%Y-%m-%d %H:%M'),
     )
